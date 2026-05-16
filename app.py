@@ -159,11 +159,16 @@ def create_app(config=None):
 
 
 # ---------------------------------------------------------------------------
+# WSGI entry point — gunicorn imports `application` from this module
+# ---------------------------------------------------------------------------
+application = create_app()
+
+
+# ---------------------------------------------------------------------------
 # Development entry point
 # ---------------------------------------------------------------------------
 if __name__ == "__main__":
     # Run the development server when executed directly.
     # Debug mode is disabled when running via gunicorn (production).
-    application = create_app()
     application.run(debug=os.environ.get("FLASK_DEBUG", "0") == "1",
                     host="0.0.0.0", port=int(os.environ.get("PORT", 5000)))
