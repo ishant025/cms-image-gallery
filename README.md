@@ -119,7 +119,7 @@ python3 -c "import secrets; print(secrets.token_hex(32))"
 python3 app.py
 ```
 
-The app will be available at **http://127.0.0.1:5000**
+The app will be available at **https://content-manch.onrender.com/**
 
 To enable debug mode:
 ```bash
