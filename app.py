@@ -53,22 +53,32 @@ def create_app(config=None):
     # 1. Base configuration from environment
     # ------------------------------------------------------------------
     # Database path priority:
-    #   1. DATABASE_URL env var (if set, e.g. for Postgres)
+    #   1. DATABASE_URL env var (Neon Postgres in production)
     #   2. /data/gallery.db (Render persistent disk, if mounted)
     #   3. /tmp/gallery.db (Render free tier — always writable, but ephemeral)
     #   4. instance/gallery.db (local development)
-    if os.environ.get("DATABASE_URL"):
-        default_db = os.environ["DATABASE_URL"]
+    db_url = os.environ.get("DATABASE_URL", "").strip()
+
+    if db_url:
+        # Neon and other Postgres providers sometimes use postgres:// scheme,
+        # but SQLAlchemy 2.x requires postgresql:// — normalise it here.
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        default_db = db_url
     elif os.path.isdir("/data"):
         default_db = "sqlite:////data/gallery.db"
     elif os.path.isdir("/tmp") and os.environ.get("RENDER"):
-        # Render free tier: write to /tmp (writable but resets on restart)
         default_db = "sqlite:////tmp/gallery.db"
     else:
         default_db = "sqlite:///gallery.db"
 
     app.config["SQLALCHEMY_DATABASE_URI"] = default_db
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+    # Pool settings to keep Neon connections healthy through long idles
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_pre_ping": True,
+        "pool_recycle": 300,
+    }
 
     # Seed SECRET_KEY from environment before applying caller overrides
     secret_key_env = os.environ.get("SECRET_KEY", "")
