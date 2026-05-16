@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Error — Content मंच{% endblock %}
+
+{% block content %}
+<div class="flex flex-col items-center justify-center min-h-[60vh] text-center px-4">
+
+  <!-- Error icon -->
+  <div class="mb-6 flex items-center justify-center w-20 h-20 rounded-full
+              bg-red-100 dark:bg-red-900/30">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10 text-red-500 dark:text-red-400"
+         fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+    </svg>
+  </div>
+
+  <!-- Heading -->
+  <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-3">
+    Something went wrong
+  </h1>
+
+  <!-- Error message passed from the route -->
+  <p class="text-base text-gray-600 dark:text-gray-400 max-w-md mb-8">
+    {{ message }}
+  </p>
+
+  <!-- Back to gallery link -->
+  <a href="{{ url_for('index') }}"
+     class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl font-semibold text-sm
+            bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600
+            text-white transition-colors duration-200 shadow-md hover:shadow-lg">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+         stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+    </svg>
+    Back to Gallery
+  </a>
+
+</div>
+{% endblock %}

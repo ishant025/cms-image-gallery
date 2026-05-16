@@ -1,0 +1,38 @@
+# Secrets — never commit
+.env
+
+# Database files
+*.db
+*.sqlite
+instance/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Test cache
+.pytest_cache/
+.hypothesis/
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# macOS junk
+.DS_Store
+**/.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Kiro spec files (internal tooling)
+.kiro/
+
+# Logs
+*.log

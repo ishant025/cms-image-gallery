@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% block title %}Content मंच — Home{% endblock %}
+
+{% block content %}
+
+  <!-- Search bar -->
+  <div class="mb-8">
+    <div class="flex gap-2 max-w-xl mx-auto">
+      <input
+        type="text"
+        id="search-input"
+        maxlength="255"
+        placeholder="🔍 Search by tag…"
+        autocomplete="off"
+        class="flex-1 px-4 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
+               bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+               placeholder-gray-400 dark:placeholder-gray-500
+               focus:outline-none transition-colors duration-200 text-sm"
+        onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
+        onblur="this.style.boxShadow=''; this.style.borderColor='';"
+      />
+      <button
+        id="search-btn"
+        type="button"
+        class="px-5 py-2.5 rounded-xl text-white font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
+        style="background: linear-gradient(135deg, #0f5c4e, #0f8c68);"
+        onmouseover="this.style.background='linear-gradient(135deg, #0a4038, #0f5c4e)';"
+        onmouseout="this.style.background='linear-gradient(135deg, #0f5c4e, #0f8c68)';">
+        Search
+      </button>
+    </div>
+  </div>
+
+  <!-- No results message -->
+  <div id="no-results" class="hidden text-center py-16 text-gray-500 dark:text-gray-400">
+    <p class="text-4xl mb-3">🔍</p>
+    <p class="text-lg font-semibold">No results found</p>
+    <p class="text-sm mt-1">Try a different tag or clear the search bar.</p>
+  </div>
+
+  <!-- Gallery grid -->
+  <div id="gallery-grid">
+
+    {% if images %}
+      <div class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4">
+
+        {% for image in images %}
+          <div id="image-card-{{ image.id }}"
+               class="break-inside-avoid mb-4 bg-white dark:bg-gray-800 rounded-2xl shadow-md
+                      overflow-hidden card-fade-in hover:shadow-xl transition-all duration-300
+                      border border-stone-100 dark:border-gray-700">
+
+            <!-- Image -->
+            <div class="overflow-hidden">
+              <img
+                src="{{ image.s3_url }}"
+                alt="Uploaded by {{ image.username }}"
+                loading="lazy"
+                class="w-full object-cover rounded-t-2xl transition-transform duration-300 hover:scale-105"
+              />
+            </div>
+
+            <!-- Card body -->
+            <div class="p-3 space-y-2">
+
+              <!-- Uploader and date -->
+              <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
+                <span class="font-semibold" style="color:#0f5c4e;">
+                  👤 {{ image.username }}
+                </span>
+                <span class="text-gray-400 dark:text-gray-500">{{ image.uploaded_at }}</span>
+              </div>
+
+              <!-- Tags -->
+              {% if image.tags %}
+                <div class="flex flex-wrap gap-1">
+                  {% for tag in image.tags %}
+                    <button
+                      type="button"
+                      data-tag="{{ tag }}"
+                      class="tag-badge px-2 py-0.5 text-xs rounded-full font-medium
+                             transition-all duration-200 cursor-pointer border"
+                      style="background:#f0faf7; color:#0f5c4e; border-color:#a1e0cc;"
+                      onmouseover="this.style.background='#0f5c4e'; this.style.color='white';"
+                      onmouseout="this.style.background='#f0faf7'; this.style.color='#0f5c4e';">
+                      #{{ tag }}
+                    </button>
+                  {% endfor %}
+                </div>
+              {% endif %}
+
+              <!-- Like / Dislike / Delete -->
+              <div class="flex items-center gap-3 pt-1">
+
+                {% if current_user.is_authenticated %}
+                  <button
+                    type="button"
+                    data-image-id="{{ image.id }}"
+                    data-reaction="like"
+                    class="reaction-btn flex items-center gap-1 text-sm font-medium
+                           text-gray-500 dark:text-gray-400 transition-colors duration-200 focus:outline-none"
+                    onmouseover="this.style.color='#0f5c4e';"
+                    onmouseout="this.style.color='';">
+                    👍 <span id="likes-count-{{ image.id }}">{{ image.likes }}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    data-image-id="{{ image.id }}"
+                    data-reaction="dislike"
+                    class="reaction-btn flex items-center gap-1 text-sm font-medium
+                           text-gray-500 dark:text-gray-400 transition-colors duration-200 focus:outline-none"
+                    onmouseover="this.style.color='#ea6c1a';"
+                    onmouseout="this.style.color='';">
+                    👎 <span id="dislikes-count-{{ image.id }}">{{ image.dislikes }}</span>
+                  </button>
+
+                {% else %}
+                  <span class="flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">
+                    👍 <span id="likes-count-{{ image.id }}">{{ image.likes }}</span>
+                  </span>
+                  <span class="flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">
+                    👎 <span id="dislikes-count-{{ image.id }}">{{ image.dislikes }}</span>
+                  </span>
+                {% endif %}
+
+                {% if current_user.is_authenticated and current_user.id == image.user_id %}
+                  <button
+                    type="button"
+                    data-image-id="{{ image.id }}"
+                    class="delete-btn ml-auto text-sm text-gray-400 hover:text-red-500
+                           dark:text-gray-500 dark:hover:text-red-400
+                           transition-colors duration-200 focus:outline-none"
+                    aria-label="Delete image">
+                    🗑️
+                  </button>
+                {% endif %}
+
+              </div>
+
+            </div>
+          </div>
+        {% endfor %}
+
+      </div>
+
+    {% else %}
+      <div class="text-center py-24 text-gray-500 dark:text-gray-400">
+        <p class="text-6xl mb-4">🪷</p>
+        <p class="text-xl font-semibold mb-2">No images yet. Be the first to upload!</p>
+        {% if current_user.is_authenticated %}
+          <a href="{{ url_for('upload') }}"
+             class="mt-4 inline-block px-6 py-2.5 rounded-xl text-white font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+             style="background: linear-gradient(135deg, #0f5c4e, #0f8c68);">
+            Upload Now
+          </a>
+        {% else %}
+          <a href="{{ url_for('register') }}"
+             class="mt-4 inline-block px-6 py-2.5 rounded-xl text-white font-semibold transition-all duration-200 shadow-sm hover:shadow-md"
+             style="background: linear-gradient(135deg, #0f5c4e, #0f8c68);">
+            Register to Upload
+          </a>
+        {% endif %}
+      </div>
+    {% endif %}
+
+  </div>
+
+{% endblock %}
+
+{% block scripts %}
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .card-fade-in { animation: fadeIn 0.4s ease-out both; }
+</style>
+
+<script>
+  window.currentUserId = {% if current_user.is_authenticated %}{{ current_user.id }}{% else %}null{% endif %};
+</script>
+<script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
+{% endblock %}

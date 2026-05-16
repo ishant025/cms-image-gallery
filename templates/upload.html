@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Image — Content मंच{% endblock %}
+
+{% block content %}
+<div class="py-10 px-4 sm:px-6 lg:px-8">
+  <div class="max-w-xl mx-auto">
+
+    <div class="text-center mb-8">
+      <h1 class="text-3xl font-bold tracking-tight" style="color:#0f5c4e;">
+        Upload an Image
+      </h1>
+      <p class="mt-2 text-sm text-gray-500 dark:text-gray-400">
+        Share your photos and GIFs with Content मंच
+      </p>
+    </div>
+
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden
+                border border-stone-100 dark:border-gray-700">
+
+      <!-- Top accent bar -->
+      <div class="h-1.5" style="background: linear-gradient(90deg, #0f5c4e, #ea6c1a, #c9920a, #6b21a8);"></div>
+
+      <div class="px-8 py-10">
+        <form id="upload-form" method="POST" action="{{ url_for('upload') }}"
+              enctype="multipart/form-data" novalidate>
+
+          <!-- File drop zone -->
+          <div class="mb-6">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Image File
+            </label>
+            <div id="drop-zone"
+                 class="relative flex flex-col items-center justify-center w-full rounded-xl
+                        border-2 border-dashed border-stone-300 dark:border-gray-600
+                        bg-stone-50 dark:bg-gray-700/40 cursor-pointer transition-all duration-200"
+                 style="min-height: 180px;"
+                 onmouseover="this.style.borderColor='#0f5c4e'; this.style.background='#f0faf7';"
+                 onmouseout="this.style.borderColor=''; this.style.background='';">
+
+              <div id="drop-zone-placeholder" class="flex flex-col items-center py-10 px-6 text-center pointer-events-none select-none">
+                <svg class="w-12 h-12 mb-3" style="color:#0f5c4e; opacity:0.5;" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+                </svg>
+                <p class="text-sm text-gray-600 dark:text-gray-400">
+                  <span class="font-semibold" style="color:#0f5c4e;">Click to browse</span>
+                  &nbsp;or drag &amp; drop
+                </p>
+                <p id="file-name-display" class="mt-1 text-xs text-gray-500 dark:text-gray-500">No file chosen</p>
+                <p class="mt-2 text-xs text-gray-400 dark:text-gray-600">Max 10 MB · Accepted: JPEG, PNG, GIF</p>
+              </div>
+
+              <div id="image-preview-wrapper" class="hidden w-full p-4 flex flex-col items-center">
+                <img id="image-preview" src="#" alt="Preview"
+                     class="max-h-56 max-w-full rounded-lg object-contain shadow-md" />
+                <p id="preview-file-name" class="mt-3 text-xs font-medium text-gray-600 dark:text-gray-400 truncate max-w-xs"></p>
+                <button type="button" id="clear-file-btn"
+                        class="mt-2 text-xs underline focus:outline-none transition-colors"
+                        style="color:#ea6c1a;"
+                        onmouseover="this.style.color='#c2540e';"
+                        onmouseout="this.style.color='#ea6c1a';">
+                  Remove file
+                </button>
+              </div>
+
+              <input id="file-input" type="file" name="file"
+                     accept="image/jpeg,image/png,image/gif"
+                     class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                     aria-label="Choose an image file" />
+            </div>
+          </div>
+
+          <!-- Tags input -->
+          <div class="mb-8">
+            <label for="tags-input" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+              Tags <span class="font-normal text-gray-400 dark:text-gray-500">(optional)</span>
+            </label>
+            <input id="tags-input" type="text" name="tags" maxlength="255"
+              placeholder="e.g. nature, travel, city"
+              class="block w-full rounded-xl border border-stone-300 dark:border-gray-600
+                     bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100
+                     placeholder-gray-400 dark:placeholder-gray-500
+                     px-4 py-2.5 text-sm focus:outline-none transition-colors duration-200"
+              onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
+              onblur="this.style.boxShadow=''; this.style.borderColor='';" />
+            <p class="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
+              Separate with commas · Max 20 tags · Alphanumeric, spaces, hyphens only
+            </p>
+          </div>
+
+          <!-- Submit -->
+          <button type="submit"
+            class="w-full flex items-center justify-center gap-2 rounded-xl
+                   text-white font-semibold text-sm px-6 py-3
+                   shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200"
+            style="background: linear-gradient(135deg, #0f5c4e, #0f8c68);"
+            onmouseover="this.style.background='linear-gradient(135deg, #0a4038, #0f5c4e)';"
+            onmouseout="this.style.background='linear-gradient(135deg, #0f5c4e, #0f8c68)';">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+            Upload Image
+          </button>
+
+        </form>
+      </div>
+    </div>
+
+    <p class="mt-6 text-center text-sm text-gray-500 dark:text-gray-400">
+      <a href="/" class="font-medium transition-colors"
+         style="color:#0f5c4e;"
+         onmouseover="this.style.color='#ea6c1a';"
+         onmouseout="this.style.color='#0f5c4e';">
+        ← Back to gallery
+      </a>
+    </p>
+
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  const dropZone = document.getElementById("drop-zone");
+  const fileInput = document.getElementById("file-input");
+  const placeholder = document.getElementById("drop-zone-placeholder");
+  const previewWrapper = document.getElementById("image-preview-wrapper");
+  const previewImg = document.getElementById("image-preview");
+  const previewFileName = document.getElementById("preview-file-name");
+  const fileNameDisplay = document.getElementById("file-name-display");
+  const clearBtn = document.getElementById("clear-file-btn");
+
+  function onDragOver(e) {
+    e.preventDefault();
+    dropZone.style.borderColor = '#0f5c4e';
+    dropZone.style.background = '#f0faf7';
+  }
+  function onDragLeave(e) {
+    e.preventDefault();
+    dropZone.style.borderColor = '';
+    dropZone.style.background = '';
+  }
+  function onDrop(e) {
+    e.preventDefault();
+    onDragLeave(e);
+    const files = e.dataTransfer.files;
+    if (files && files.length > 0) {
+      const dt = new DataTransfer();
+      dt.items.add(files[0]);
+      fileInput.files = dt.files;
+      handleFileSelected(files[0]);
+    }
+  }
+
+  dropZone.addEventListener("dragover", onDragOver);
+  dropZone.addEventListener("dragleave", onDragLeave);
+  dropZone.addEventListener("drop", onDrop);
+
+  fileInput.addEventListener("change", function () {
+    if (fileInput.files && fileInput.files.length > 0) {
+      handleFileSelected(fileInput.files[0]);
+    }
+  });
+
+  function handleFileSelected(file) {
+    fileNameDisplay.textContent = file.name;
+    if (file.type.startsWith("image/")) {
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        previewImg.src = e.target.result;
+        previewFileName.textContent = file.name;
+        placeholder.classList.add("hidden");
+        previewWrapper.classList.remove("hidden");
+      };
+      reader.readAsDataURL(file);
+    } else {
+      placeholder.classList.remove("hidden");
+      previewWrapper.classList.add("hidden");
+    }
+  }
+
+  clearBtn.addEventListener("click", function (e) {
+    e.stopPropagation();
+    fileInput.value = "";
+    previewImg.src = "#";
+    previewFileName.textContent = "";
+    fileNameDisplay.textContent = "No file chosen";
+    previewWrapper.classList.add("hidden");
+    placeholder.classList.remove("hidden");
+  });
+})();
+</script>
+{% endblock %}
