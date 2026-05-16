@@ -92,8 +92,12 @@ def delete_media(image_id: int, requesting_user_id: int) -> tuple[bool, str]:
         raise ImageNotFoundError(f"Image with id {image_id} does not exist.")
 
     # --- Step 2: Authorization check ---
-    # Verify the requesting user owns this image (Requirement 7.1, 7.3)
-    if image.user_id != requesting_user_id:
+    # Admin users can delete any image; regular users can only delete their own
+    from models import User
+    requesting_user = db.session.get(User, requesting_user_id)
+    is_admin = requesting_user and requesting_user.is_admin
+
+    if not is_admin and image.user_id != requesting_user_id:
         raise AuthorizationError(
             f"User {requesting_user_id} is not authorized to delete image {image_id}."
         )

@@ -322,30 +322,44 @@ def register_routes(app):
     # ------------------------------------------------------------------
     @app.route("/search", methods=["GET"])
     def search():
-        """
-        Search for images by tag using a case-insensitive partial match.
-
-        Query parameter: q (the search string)
-
-        Returns JSON:
-          - 200 [list of image dicts]  on success (Requirement 6.2)
-          - 200 []                     when query is blank (no search executed)
-          - 500 {"error": "..."}       if the search service fails (Requirement 6.7)
-        """
-        # Extract the search query from the query string
+        """Search for images by tag using a case-insensitive partial match."""
         query = request.args.get("q", "").strip()
-
-        # If the query is blank, return an empty list without hitting the DB (Req 6.8)
         if not query:
             return jsonify([]), 200
-
         try:
-            # Delegate the database query to Search_Service
             results = search_service.search_by_tag(query)
         except Exception as exc:
-            # Search service unavailable or errored — return 500 JSON (Req 6.7)
             logger.exception("Search failed for query %r: %s", query, exc)
             return jsonify({"error": "Search failed. Please try again."}), 500
-
-        # Return the list of matching image dicts as JSON (Requirement 6.2)
         return jsonify(results), 200
+
+    # ------------------------------------------------------------------
+    # POST /admin/make/<username>  — Promote a user to admin
+    # Only works if no admin exists yet (first-time setup) OR if the
+    # request comes from an existing admin.
+    # ------------------------------------------------------------------
+    @app.route("/admin/make/<username>", methods=["POST"])
+    def make_admin(username):
+        """
+        Promote a user to admin.
+        - If no admin exists yet: anyone can call this (first-time setup).
+        - If an admin already exists: only an existing admin can call this.
+        """
+        from models import User
+
+        # Check if any admin already exists
+        existing_admin = User.query.filter_by(is_admin=True).first()
+
+        if existing_admin:
+            # An admin already exists — only allow if current user is admin
+            if not flask_login.current_user.is_authenticated or not flask_login.current_user.is_admin:
+                return jsonify({"error": "Forbidden — admin already exists"}), 403
+
+        # Find the target user
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            return jsonify({"error": f"User '{username}' not found"}), 404
+
+        user.is_admin = True
+        db.session.commit()
+        return jsonify({"success": True, "message": f"'{username}' is now an admin"}), 200

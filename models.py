@@ -18,23 +18,17 @@ db = SQLAlchemy()
 
 
 class User(UserMixin, db.Model):
-    """Represents a registered user account.
-
-    Inherits from UserMixin to provide Flask-Login required properties:
-    is_authenticated, is_active, is_anonymous, get_id (Requirement 2.2).
-    """
+    """Represents a registered user account."""
 
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True)
-    # Username must be unique and at most 50 characters (Requirement 1.1)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    # Email must be unique and at most 254 characters (RFC 5322 max, Requirement 1.1)
     email = db.Column(db.String(254), unique=True, nullable=False)
-    # Werkzeug PBKDF2-SHA256 hash — never the plaintext password (Requirement 1.2)
     password = db.Column(db.String(256), nullable=False)
+    # Admin flag — admin users can delete any image (not just their own)
+    is_admin = db.Column(db.Boolean, nullable=False, default=False)
 
-    # One user → many images; deleting a user cascades to their images
     images = db.relationship(
         "Image",
         backref="uploader",
@@ -43,7 +37,7 @@ class User(UserMixin, db.Model):
     )
 
     def __repr__(self):
-        return f"<User id={self.id} username={self.username!r}>"
+        return f"<User id={self.id} username={self.username!r} is_admin={self.is_admin}>"
 
 
 class Image(db.Model):

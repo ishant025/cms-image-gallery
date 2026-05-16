@@ -124,15 +124,17 @@
                   </span>
                 {% endif %}
 
-                {% if current_user.is_authenticated and current_user.id == image.user_id %}
+                <!-- Delete button — owner OR admin can delete -->
+                {% if current_user.is_authenticated and (current_user.id == image.user_id or current_user.is_admin) %}
                   <button
                     type="button"
                     data-image-id="{{ image.id }}"
                     class="delete-btn ml-auto text-sm text-gray-400 hover:text-red-500
                            dark:text-gray-500 dark:hover:text-red-400
                            transition-colors duration-200 focus:outline-none"
-                    aria-label="Delete image">
-                    🗑️
+                    aria-label="Delete image"
+                    title="{% if current_user.is_admin and current_user.id != image.user_id %}Admin delete{% else %}Delete your image{% endif %}">
+                    {% if current_user.is_admin and current_user.id != image.user_id %}🛡️{% else %}🗑️{% endif %}
                   </button>
                 {% endif %}
 
