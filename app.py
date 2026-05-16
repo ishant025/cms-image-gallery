@@ -52,10 +52,22 @@ def create_app(config=None):
     # ------------------------------------------------------------------
     # 1. Base configuration from environment
     # ------------------------------------------------------------------
-    # On Render, use /data/gallery.db (persistent disk).
-    # Locally, fall back to instance/gallery.db (Flask default instance folder).
-    default_db = "sqlite:////data/gallery.db" if os.path.isdir("/data") else "sqlite:///gallery.db"
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL", default_db)
+    # Database path priority:
+    #   1. DATABASE_URL env var (if set, e.g. for Postgres)
+    #   2. /data/gallery.db (Render persistent disk, if mounted)
+    #   3. /tmp/gallery.db (Render free tier — always writable, but ephemeral)
+    #   4. instance/gallery.db (local development)
+    if os.environ.get("DATABASE_URL"):
+        default_db = os.environ["DATABASE_URL"]
+    elif os.path.isdir("/data"):
+        default_db = "sqlite:////data/gallery.db"
+    elif os.path.isdir("/tmp") and os.environ.get("RENDER"):
+        # Render free tier: write to /tmp (writable but resets on restart)
+        default_db = "sqlite:////tmp/gallery.db"
+    else:
+        default_db = "sqlite:///gallery.db"
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = default_db
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
     # Seed SECRET_KEY from environment before applying caller overrides
