@@ -6,12 +6,16 @@
 
 ### *Content को दें नई पहचान*
 
-A modern, cloud-powered Image & GIF Gallery — built with Flask, AWS S3, and Tailwind CSS.
+A modern, cloud-powered Image & GIF Gallery — built with Flask, AWS S3, Neon PostgreSQL, and Tailwind CSS.
 
-[![Python](https://img.shields.io/badge/Python-3.10+-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+### 🌐 [Live Demo → content-manch.onrender.com](https://content-manch.onrender.com)
+
+[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=flat&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
 [![AWS S3](https://img.shields.io/badge/AWS-S3-FF9900?style=flat&logo=amazonaws&logoColor=white)](https://aws.amazon.com/s3/)
+[![Neon](https://img.shields.io/badge/Neon-PostgreSQL-00E599?style=flat&logo=postgresql&logoColor=white)](https://neon.tech/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-06B6D4?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
+[![Render](https://img.shields.io/badge/Deployed_on-Render-46E3B7?style=flat&logo=render&logoColor=white)](https://content-manch.onrender.com)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat)](#license)
 [![Tests](https://img.shields.io/badge/Tests-59%20passed-success?style=flat)](#testing)
 
@@ -27,6 +31,7 @@ A modern, cloud-powered Image & GIF Gallery — built with Flask, AWS S3, and Ta
 - 🔍 **Live Search** — Dynamic, case-insensitive partial tag search without page reloads
 - 👍 **Like / Dislike** — One reaction per user per image with smart toggle logic
 - 🗑️ **Owner-Only Deletion** — Only the uploader can delete an image, with a confirmation modal
+- 👑 **Admin Role** — Admin can delete any user's image for moderation
 - 🌓 **Dark / Light Mode** — Persistent theme toggle via `localStorage`
 - 📱 **Fully Responsive** — Pinterest-style masonry grid that adapts from mobile to desktop
 - ⚡ **Fast** — Search returns results in under 2 seconds for up to 10,000 records
@@ -51,13 +56,14 @@ A modern, cloud-powered Image & GIF Gallery — built with Flask, AWS S3, and Ta
 
 | Layer | Technology |
 |---|---|
-| **Backend** | Python 3.10+, Flask 3.0, SQLAlchemy 2.0 |
-| **Database** | SQLite (Flask-SQLAlchemy) |
+| **Backend** | Python 3.11, Flask 3.0, SQLAlchemy 2.0 |
+| **Database** | Neon PostgreSQL (production) / SQLite (local dev) |
 | **Storage** | Amazon AWS S3 (Boto3) |
 | **Auth** | Flask-Login + Werkzeug password hashing |
 | **Frontend** | HTML5, Tailwind CSS (CDN), Vanilla JavaScript |
+| **Hosting** | Render (Web Service) |
 | **Testing** | pytest, Hypothesis (property-based tests) |
-| **Production** | Gunicorn |
+| **Production Server** | Gunicorn |
 
 ---
 
@@ -204,20 +210,30 @@ python3 -m pytest tests/ --cov=. --cov-report=html
 
 ---
 
-## 🌐 Deployment (Render)
+## 🌐 Deployment (Render + Neon)
 
-1. Push this repo to GitHub (`.env` is auto-excluded by `.gitignore`)
-2. Sign up at [render.com](https://render.com) using your GitHub account
-3. Click **New +** → **Web Service** → connect this repo
-4. Configure:
+This app is deployed on **Render** (hosting) + **Neon** (PostgreSQL database) + **AWS S3** (image storage).
+
+### Production setup:
+
+1. Push this repo to GitHub
+2. Create a free **Neon** project at [neon.tech](https://neon.tech) → copy the pooled connection string
+3. Create a **Render Web Service** at [render.com](https://render.com) → connect this repo
+4. Configure Render:
    - **Build Command**: `pip install -r requirements.txt`
-   - **Start Command**: `gunicorn app:application --workers 2 --timeout 120`
+   - **Start Command**: `gunicorn app:application --workers 1 --timeout 120`
    - **Instance Type**: Free
-5. Add all required environment variables (`SECRET_KEY`, `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_S3_BUCKET_NAME`, `AWS_S3_REGION`) in the Render dashboard
-6. Add a **Persistent Disk**:
-   - Mount Path: `/data`
-   - Size: 1 GB
-7. Click **Create Web Service** — your app goes live in ~3 minutes
+5. Add Environment Variables in Render:
+   - `DATABASE_URL` = your Neon connection string
+   - `SECRET_KEY` = a random 64-char hex string
+   - `AWS_ACCESS_KEY_ID` = your AWS key
+   - `AWS_SECRET_ACCESS_KEY` = your AWS secret
+   - `AWS_S3_BUCKET_NAME` = your bucket name
+   - `AWS_S3_REGION` = your bucket region
+   - `RENDER` = `1`
+6. Deploy — your app goes live in ~3 minutes
+
+**Live URL:** [https://content-manch.onrender.com](https://content-manch.onrender.com)
 
 Other supported platforms: **Railway**, **Fly.io**, **PythonAnywhere**, **AWS Elastic Beanstalk**
 
