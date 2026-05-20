@@ -8,6 +8,7 @@
 
 A modern, cloud-powered Image & GIF Gallery — built with Flask, AWS S3, Neon PostgreSQL, and Tailwind CSS.
 
+
 ### 🌐 [Live Demo → content-manch.onrender.com](https://content-manch.onrender.com)
 
 [![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
@@ -42,11 +43,10 @@ A modern, cloud-powered Image & GIF Gallery — built with Flask, AWS S3, Neon P
 
 <div align="center">
 
-> Add your screenshots here once deployed:
-> - Gallery homepage (light mode)
-> - Gallery homepage (dark mode)
-> - Upload page with drag-and-drop
-> - Login / Register forms
+<img width="1600" height="850" alt="IMG-20260519-WA0024" src="https://github.com/user-attachments/assets/cf185f06-873a-424b-90ea-e73a5eae46d6" />
+<img width="1600" height="843" alt="IMG-20260519-WA0025" src="https://github.com/user-attachments/assets/5efea754-1b73-4dad-bdec-9dee69246382" />
+<img width="1897" height="866" alt="Screenshot 2026-05-20 201632" src="https://github.com/user-attachments/assets/956fdc7a-7eb5-4566-bf77-4d73aa826fd9" />
+<img width="1901" height="871" alt="Screenshot 2026-05-20 201602" src="https://github.com/user-attachments/assets/f4dc6134-3366-4e43-83a9-1fa0a555ef23" />
 
 </div>
 
@@ -232,7 +232,6 @@ This app is deployed on **Render** (hosting) + **Neon** (PostgreSQL database) + 
    - `RENDER` = `1`
 6. Deploy — your app goes live in ~3 minutes
 
-**Live URL:** [https://content-manch.onrender.com](https://content-manch.onrender.com)
 
 Other supported platforms: **Railway**, **Fly.io**, **PythonAnywhere**, **AWS Elastic Beanstalk**
 
