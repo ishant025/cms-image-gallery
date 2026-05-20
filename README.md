@@ -295,6 +295,39 @@ Contributions are welcome! Please:
 
 ---
 
+## 👥 Contributors
+
+<table>
+  <tr>
+    <td align="center">
+      <a href="https://github.com/ishant025">
+        <img src="https://github.com/ishant025.png" width="80" style="border-radius:50%;" alt="Ishant Sahu"/><br/>
+        <sub><b>Ishant Sahu</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/rootmelody">
+        <img src="https://github.com/rootmelody.png" width="80" style="border-radius:50%;" alt="Nitin Nirmalkar"/><br/>
+        <sub><b>Nitin Nirmalkar</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/RAKESH-PARATE">
+        <img src="https://github.com/RAKESH-PARATE.png" width="80" style="border-radius:50%;" alt="Rakesh Parate"/><br/>
+        <sub><b>Rakesh Parate</b></sub>
+      </a>
+    </td>
+    <td align="center">
+      <a href="https://github.com/sageverse-tech">
+        <img src="https://github.com/sageverse-tech.png" width="80" style="border-radius:50%;" alt="Khushraj Varghat"/><br/>
+        <sub><b>Khushraj Varghat</b></sub>
+      </a>
+    </td>
+  </tr>
+</table>
+
+---
+
 ## 📄 License
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
