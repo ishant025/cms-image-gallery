@@ -145,6 +145,9 @@ def create_app(config=None):
             inspector = inspect(db.engine)
             tag_columns = [col['name'] for col in inspector.get_columns('tags')]
             
+            # Determine if we're using PostgreSQL or SQLite
+            is_postgres = 'postgresql' in str(db.engine.url)
+            
             with db.engine.connect() as conn:
                 if 'confidence' not in tag_columns:
                     conn.execute(text('ALTER TABLE tags ADD COLUMN confidence FLOAT'))
@@ -152,12 +155,25 @@ def create_app(config=None):
                     logging.info("Added confidence column to tags table")
                 
                 if 'is_ai_generated' not in tag_columns:
-                    conn.execute(text('ALTER TABLE tags ADD COLUMN is_ai_generated BOOLEAN DEFAULT 0 NOT NULL'))
-                    conn.commit()
+                    if is_postgres:
+                        # PostgreSQL: Add column as nullable first, set default, then make NOT NULL
+                        conn.execute(text('ALTER TABLE tags ADD COLUMN is_ai_generated BOOLEAN'))
+                        conn.commit()
+                        conn.execute(text('UPDATE tags SET is_ai_generated = FALSE WHERE is_ai_generated IS NULL'))
+                        conn.commit()
+                        conn.execute(text('ALTER TABLE tags ALTER COLUMN is_ai_generated SET DEFAULT FALSE'))
+                        conn.commit()
+                        conn.execute(text('ALTER TABLE tags ALTER COLUMN is_ai_generated SET NOT NULL'))
+                        conn.commit()
+                    else:
+                        # SQLite: simpler syntax
+                        conn.execute(text('ALTER TABLE tags ADD COLUMN is_ai_generated BOOLEAN DEFAULT 0 NOT NULL'))
+                        conn.commit()
                     logging.info("Added is_ai_generated column to tags table")
         except Exception as e:
             # Columns might already exist or database doesn't support ALTER TABLE
-            logging.debug(f"AI tagging columns migration: {e}")
+            logging.warning(f"AI tagging columns migration error: {e}")
+            # Don't re-raise - allow app to start even if migration fails
             pass
 
     # ------------------------------------------------------------------
