@@ -160,10 +160,11 @@ document.addEventListener('DOMContentLoaded', function () {
       var badgeItems = image.tags.map(function (tag) {
         return (
           '<button type="button" data-tag="' + escapeAttr(tag) + '" ' +
-          'class="tag-badge px-2 py-0.5 text-xs rounded-full ' +
-          'bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 ' +
-          'hover:bg-indigo-200 dark:hover:bg-indigo-800 ' +
-          'transition-colors duration-200 cursor-pointer">' +
+          'class="tag-badge px-2 py-0.5 text-xs rounded-full font-medium ' +
+          'transition-all duration-200 cursor-pointer border" ' +
+          'style="background:#f0faf7; color:#0f5c4e; border-color:#a1e0cc;" ' +
+          'onmouseover="this.style.background=\'#0f5c4e\'; this.style.color=\'white\';" ' +
+          'onmouseout="this.style.background=\'#f0faf7\'; this.style.color=\'#0f5c4e\';">' +
           '#' + escapeHTML(tag) +
           '</button>'
         );
@@ -175,38 +176,49 @@ document.addEventListener('DOMContentLoaded', function () {
        Buttons are shown only when a user is authenticated (window.currentUserId set). */
     var reactionHTML = '';
     if (window.currentUserId) {
-      /* Authenticated user — show interactive like/dislike buttons (Req 5.9) */
+      /* Authenticated user — show interactive like/dislike buttons */
       reactionHTML =
         '<button type="button" data-image-id="' + image.id + '" data-reaction="like" ' +
-        'class="reaction-btn flex items-center gap-1 text-sm ' +
-        'text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 ' +
-        'transition-colors duration-200 focus:outline-none">' +
+        'class="reaction-btn flex items-center gap-1 text-sm font-medium ' +
+        'text-gray-500 dark:text-gray-400 transition-colors duration-200 focus:outline-none" ' +
+        'onmouseover="this.style.color=\'#0f5c4e\';" ' +
+        'onmouseout="this.style.color=\'\';">' +
         '👍 <span id="likes-count-' + image.id + '" class="font-medium">' + (image.likes || 0) + '</span>' +
         '</button>' +
         '<button type="button" data-image-id="' + image.id + '" data-reaction="dislike" ' +
-        'class="reaction-btn flex items-center gap-1 text-sm ' +
-        'text-gray-600 dark:text-gray-400 hover:text-red-500 dark:hover:text-red-400 ' +
-        'transition-colors duration-200 focus:outline-none">' +
+        'class="reaction-btn flex items-center gap-1 text-sm font-medium ' +
+        'text-gray-500 dark:text-gray-400 transition-colors duration-200 focus:outline-none" ' +
+        'onmouseover="this.style.color=\'#ea6c1a\';" ' +
+        'onmouseout="this.style.color=\'\';">' +
         '👎 <span id="dislikes-count-' + image.id + '" class="font-medium">' + (image.dislikes || 0) + '</span>' +
         '</button>';
     } else {
       /* Guest — show static counts without interactive buttons */
       reactionHTML =
-        '<span class="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">' +
+        '<span class="flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">' +
         '👍 <span id="likes-count-' + image.id + '">' + (image.likes || 0) + '</span>' +
         '</span>' +
-        '<span class="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">' +
+        '<span class="flex items-center gap-1 text-sm text-gray-400 dark:text-gray-500">' +
         '👎 <span id="dislikes-count-' + image.id + '">' + (image.dislikes || 0) + '</span>' +
         '</span>';
     }
 
-    /* Show delete button only if the current user owns this image (Req 5.8) */
+    /* Download button - always show */
+    var downloadHTML = 
+      '<a href="' + escapeAttr(image.s3_url) + '" download ' +
+      'onclick="event.stopPropagation();" ' +
+      'class="' + (window.currentUserId && window.currentUserId === image.user_id ? '' : 'ml-auto ') + 
+      'text-sm text-gray-400 hover:text-blue-500 dark:text-gray-500 dark:hover:text-blue-400 ' +
+      'transition-colors duration-200" ' +
+      'title="Download image">⬇️</a>';
+
+    /* Show delete button only if the current user owns this image */
     var deleteHTML = '';
     if (window.currentUserId && window.currentUserId === image.user_id) {
       deleteHTML =
         '<button type="button" data-image-id="' + image.id + '" ' +
-        'class="delete-btn ml-auto text-sm text-red-400 hover:text-red-600 ' +
-        'dark:text-red-500 dark:hover:text-red-400 ' +
+        'class="delete-btn ml-auto text-sm text-gray-400 hover:text-red-500 ' +
+        'dark:text-gray-500 dark:hover:text-red-400 ' +
         'transition-colors duration-200 focus:outline-none" ' +
         'aria-label="Delete image">🗑️</button>';
     }
@@ -214,27 +226,36 @@ document.addEventListener('DOMContentLoaded', function () {
     /* Assemble the full card HTML matching the structure in index.html */
     return (
       '<div id="image-card-' + image.id + '" ' +
-      'class="break-inside-avoid mb-4 bg-white dark:bg-gray-800 rounded-xl shadow-md ' +
-      'overflow-hidden card-fade-in hover:shadow-xl transition-shadow duration-300">' +
+      'class="break-inside-avoid mb-4 bg-white dark:bg-gray-800 rounded-2xl shadow-md ' +
+      'overflow-hidden card-fade-in hover:shadow-xl transition-all duration-300 ' +
+      'border border-stone-100 dark:border-gray-700">' +
 
         '<div class="overflow-hidden">' +
           '<img src="' + escapeAttr(image.s3_url) + '" ' +
           'alt="Uploaded by ' + escapeAttr(image.username) + '" ' +
           'loading="lazy" ' +
-          'class="w-full object-cover rounded-t-xl transition-transform duration-300 hover:scale-105" />' +
+          'onclick="openLightbox(' + image.id + ', \'' + escapeAttr(image.s3_url) + '\', \'' + escapeAttr(image.username) + '\', ' + image.id + ')" ' +
+          'class="w-full object-cover rounded-t-2xl transition-transform duration-300 hover:scale-105 cursor-pointer" />' +
         '</div>' +
 
         '<div class="p-3 space-y-2">' +
 
           '<div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">' +
-            '<span class="font-medium text-gray-700 dark:text-gray-300">👤 ' + escapeHTML(image.username) + '</span>' +
-            '<span>' + escapeHTML(image.uploaded_at) + '</span>' +
+            '<a href="/user/' + escapeAttr(image.username) + '" ' +
+            'class="font-semibold hover:underline transition-colors duration-200" ' +
+            'style="color:#0f5c4e;">👤 ' + escapeHTML(image.username) + '</a>' +
+            '<span class="text-gray-400 dark:text-gray-500">' + escapeHTML(image.uploaded_at) + '</span>' +
+          '</div>' +
+
+          '<div class="text-xs text-gray-400 dark:text-gray-500">' +
+            '👁️ ' + (image.views || 0) + ' views' +
           '</div>' +
 
           tagsHTML +
 
           '<div class="flex items-center gap-3 pt-1">' +
             reactionHTML +
+            downloadHTML +
             deleteHTML +
           '</div>' +
 

@@ -51,12 +51,13 @@
                       border border-stone-100 dark:border-gray-700">
 
             <!-- Image -->
-            <div class="overflow-hidden cursor-pointer" onclick="openLightbox({{ image.id }}, '{{ image.s3_url }}', '{{ image.username }}', {{ image.id }})">
+            <div class="overflow-hidden">
               <img
                 src="{{ image.s3_url }}"
                 alt="Uploaded by {{ image.username }}"
                 loading="lazy"
-                class="w-full object-cover rounded-t-2xl transition-transform duration-300 hover:scale-105"
+                onclick="openLightbox({{ image.id }}, '{{ image.s3_url }}', '{{ image.username }}', {{ image.id }})"
+                class="w-full object-cover rounded-t-2xl transition-transform duration-300 hover:scale-105 cursor-pointer"
               />
             </div>
 
@@ -133,6 +134,7 @@
 
                 <!-- Download button -->
                 <a href="{{ image.s3_url }}" download
+                   onclick="event.stopPropagation();"
                    class="{% if not current_user.is_authenticated or (current_user.id != image.user_id and not current_user.is_admin) %}ml-auto{% endif %} text-sm text-gray-400 hover:text-blue-500 dark:text-gray-500 dark:hover:text-blue-400
                           transition-colors duration-200"
                    title="Download image">
