@@ -16,24 +16,16 @@
    ====================================================================== */
 
 function downloadImage(url, filename) {
-  // Use fetch to get the image as a blob, then trigger download
-  fetch(url)
-    .then(response => response.blob())
-    .then(blob => {
-      const blobUrl = window.URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = blobUrl;
-      a.download = filename || 'image.jpg';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      window.URL.revokeObjectURL(blobUrl);
-      showToast('Download started!', 'success');
-    })
-    .catch(err => {
-      console.error('Download failed:', err);
-      showToast('Download failed. Please try again.', 'error');
-    });
+  // Create a temporary anchor element and trigger download
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename || 'image.jpg';
+  a.target = '_blank';
+  a.rel = 'noopener noreferrer';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showToast('Download started!', 'success');
 }
 
 // Make function global
