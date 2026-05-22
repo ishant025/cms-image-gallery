@@ -12,6 +12,34 @@
  */
 
 /* ======================================================================
+   Download Helper Function
+   ====================================================================== */
+
+function downloadImage(url, filename) {
+  // Use fetch to get the image as a blob, then trigger download
+  fetch(url)
+    .then(response => response.blob())
+    .then(blob => {
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = blobUrl;
+      a.download = filename || 'image.jpg';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(blobUrl);
+      showToast('Download started!', 'success');
+    })
+    .catch(err => {
+      console.error('Download failed:', err);
+      showToast('Download failed. Please try again.', 'error');
+    });
+}
+
+// Make function global
+window.downloadImage = downloadImage;
+
+/* ======================================================================
    Toast Notification System
    ====================================================================== */
 
@@ -205,12 +233,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* Download button - always show */
     var downloadHTML = 
-      '<a href="' + escapeAttr(image.s3_url) + '" download ' +
-      'onclick="event.stopPropagation();" ' +
+      '<button type="button" ' +
+      'onclick="event.stopPropagation(); downloadImage(\'' + escapeAttr(image.s3_url) + '\', \'image-' + image.id + '.jpg\');" ' +
       'class="' + (window.currentUserId && window.currentUserId === image.user_id ? '' : 'ml-auto ') + 
       'text-sm text-gray-400 hover:text-blue-500 dark:text-gray-500 dark:hover:text-blue-400 ' +
-      'transition-colors duration-200" ' +
-      'title="Download image">⬇️</a>';
+      'transition-colors duration-200 cursor-pointer" ' +
+      'title="Download image">⬇️</button>';
 
     /* Show delete button only if the current user owns this image */
     var deleteHTML = '';
