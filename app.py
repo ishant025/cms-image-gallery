@@ -121,6 +121,23 @@ def create_app(config=None):
     # ------------------------------------------------------------------
     with app.app_context():
         db.create_all()
+        
+        # Migration: Add view_count column if it doesn't exist
+        try:
+            from sqlalchemy import inspect, text
+            inspector = inspect(db.engine)
+            columns = [col['name'] for col in inspector.get_columns('images')]
+            
+            if 'view_count' not in columns:
+                # Add the column with default value
+                with db.engine.connect() as conn:
+                    conn.execute(text('ALTER TABLE images ADD COLUMN view_count INTEGER DEFAULT 0 NOT NULL'))
+                    conn.commit()
+                logging.info("Added view_count column to images table")
+        except Exception as e:
+            # Column might already exist or database doesn't support ALTER TABLE
+            logging.debug(f"view_count column migration: {e}")
+            pass
 
     # ------------------------------------------------------------------
     # 7. Initialise Flask-Login (Req 2.5, 2.6)
