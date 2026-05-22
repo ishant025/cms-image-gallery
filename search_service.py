@@ -81,7 +81,16 @@ def search_by_tag(query: str) -> list[dict]:
         # Retrieve the uploader's username through the backref defined in models.py
         username = image.uploader.username if image.uploader else ""
 
-        # Collect all tag names for this image (not just the matching ones)
+        # Collect all tag names and metadata for this image
+        tag_data = []
+        for tag in image.tags:
+            tag_info = {
+                'name': tag.name,
+                'is_ai': tag.is_ai_generated,
+                'confidence': tag.confidence if tag.is_ai_generated else None
+            }
+            tag_data.append(tag_info)
+
         tag_names = [tag.name for tag in image.tags]
 
         # Count likes and dislikes with a single aggregation query per image.
@@ -109,6 +118,7 @@ def search_by_tag(query: str) -> list[dict]:
                 "username": username,
                 "uploaded_at": uploaded_at_str,
                 "tags": tag_names,
+                "tag_data": tag_data,
                 "likes": likes_count,
                 "dislikes": dislikes_count,
                 "views": image.view_count,

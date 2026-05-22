@@ -80,18 +80,20 @@
               </div>
 
               <!-- Tags -->
-              {% if image.tags %}
+              {% if image.tag_data %}
                 <div class="flex flex-wrap gap-1">
-                  {% for tag in image.tags %}
+                  {% for tag_info in image.tag_data %}
                     <button
                       type="button"
-                      data-tag="{{ tag }}"
+                      data-tag="{{ tag_info.name }}"
                       class="tag-badge px-2 py-0.5 text-xs rounded-full font-medium
-                             transition-all duration-200 cursor-pointer border"
-                      style="background:#f0faf7; color:#0f5c4e; border-color:#a1e0cc;"
-                      onmouseover="this.style.background='#0f5c4e'; this.style.color='white';"
-                      onmouseout="this.style.background='#f0faf7'; this.style.color='#0f5c4e';">
-                      #{{ tag }}
+                             transition-all duration-200 cursor-pointer border
+                             {% if tag_info.is_ai %}ai-tag{% endif %}"
+                      style="{% if tag_info.is_ai %}background:#e8f4ff; color:#0066cc; border-color:#99ccff;{% else %}background:#f0faf7; color:#0f5c4e; border-color:#a1e0cc;{% endif %}"
+                      onmouseover="{% if tag_info.is_ai %}this.style.background='#0066cc'; this.style.color='white';{% else %}this.style.background='#0f5c4e'; this.style.color='white';{% endif %}"
+                      onmouseout="{% if tag_info.is_ai %}this.style.background='#e8f4ff'; this.style.color='#0066cc';{% else %}this.style.background='#f0faf7'; this.style.color='#0f5c4e';{% endif %}"
+                      title="{% if tag_info.is_ai %}AI-generated ({{ tag_info.confidence }}% confidence){% else %}User-added tag{% endif %}">
+                      {% if tag_info.is_ai %}🤖{% endif %}#{{ tag_info.name }}{% if tag_info.is_ai %} <span style="opacity:0.7; font-size:0.85em;">({{ tag_info.confidence|int }}%)</span>{% endif %}
                     </button>
                   {% endfor %}
                 </div>

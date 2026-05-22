@@ -72,7 +72,17 @@ def register_routes(app):
                 # Retrieve the uploader's username via the backref (Requirement 5.4)
                 username = image.uploader.username if image.uploader else ""
 
-                # Collect all tag names for this image (Requirement 5.4)
+                # Collect all tag names with metadata (AI confidence if available)
+                tag_data = []
+                for tag in image.tags:
+                    tag_info = {
+                        'name': tag.name,
+                        'is_ai': tag.is_ai_generated,
+                        'confidence': tag.confidence if tag.is_ai_generated else None
+                    }
+                    tag_data.append(tag_info)
+
+                # Also keep simple tag names list for backward compatibility
                 tag_names = [tag.name for tag in image.tags]
 
                 # Count likes and dislikes for this image (Requirement 5.4)
@@ -101,7 +111,8 @@ def register_routes(app):
                         "user_id": image.user_id,
                         "uploaded_at": uploaded_at_str,
                         "username": username,
-                        "tags": tag_names,
+                        "tags": tag_names,  # Simple list for backward compatibility
+                        "tag_data": tag_data,  # Detailed tag metadata with AI info
                         "likes": likes_count,
                         "dislikes": dislikes_count,
                         "views": image.view_count,
@@ -425,6 +436,16 @@ def register_routes(app):
         # Build image list with metadata
         image_list = []
         for image in images:
+            # Collect tag metadata with AI info
+            tag_data = []
+            for tag in image.tags:
+                tag_info = {
+                    'name': tag.name,
+                    'is_ai': tag.is_ai_generated,
+                    'confidence': tag.confidence if tag.is_ai_generated else None
+                }
+                tag_data.append(tag_info)
+
             tag_names = [tag.name for tag in image.tags]
             likes_count = (
                 db.session.query(func.count(Likes.id))
@@ -446,6 +467,7 @@ def register_routes(app):
                 "uploaded_at": uploaded_at_str,
                 "username": user.username,
                 "tags": tag_names,
+                "tag_data": tag_data,
                 "likes": likes_count,
                 "dislikes": dislikes_count,
                 "views": image.view_count,

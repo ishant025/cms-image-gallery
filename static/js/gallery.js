@@ -159,9 +159,37 @@ document.addEventListener('DOMContentLoaded', function () {
    * @returns {string} HTML string for the card.
    */
   function renderCard(image) {
-    /* Build tag badge HTML for each tag */
+    /* Build tag badge HTML for each tag with AI detection */
     var tagsHTML = '';
-    if (image.tags && image.tags.length > 0) {
+    if (image.tag_data && image.tag_data.length > 0) {
+      var badgeItems = image.tag_data.map(function (tagInfo) {
+        var isAI = tagInfo.is_ai;
+        var confidence = tagInfo.confidence;
+        var tagName = tagInfo.name;
+        
+        var bgColor = isAI ? '#e8f4ff' : '#f0faf7';
+        var textColor = isAI ? '#0066cc' : '#0f5c4e';
+        var borderColor = isAI ? '#99ccff' : '#a1e0cc';
+        var hoverBg = isAI ? '#0066cc' : '#0f5c4e';
+        var emoji = isAI ? '🤖' : '';
+        var confidenceText = isAI && confidence ? ' <span style="opacity:0.7; font-size:0.85em;">(' + Math.round(confidence) + '%)</span>' : '';
+        var title = isAI ? 'AI-generated (' + Math.round(confidence) + '% confidence)' : 'User-added tag';
+        
+        return (
+          '<button type="button" data-tag="' + escapeAttr(tagName) + '" ' +
+          'class="tag-badge px-2 py-0.5 text-xs rounded-full font-medium ' +
+          'transition-all duration-200 cursor-pointer border" ' +
+          'style="background:' + bgColor + '; color:' + textColor + '; border-color:' + borderColor + ';" ' +
+          'onmouseover="this.style.background=\'' + hoverBg + '\'; this.style.color=\'white\';" ' +
+          'onmouseout="this.style.background=\'' + bgColor + '\'; this.style.color=\'' + textColor + '\';" ' +
+          'title="' + escapeAttr(title) + '">' +
+          emoji + '#' + escapeHTML(tagName) + confidenceText +
+          '</button>'
+        );
+      });
+      tagsHTML = '<div class="flex flex-wrap gap-1">' + badgeItems.join('') + '</div>';
+    } else if (image.tags && image.tags.length > 0) {
+      /* Fallback for old format without tag_data */
       var badgeItems = image.tags.map(function (tag) {
         return (
           '<button type="button" data-tag="' + escapeAttr(tag) + '" ' +

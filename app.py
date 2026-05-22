@@ -139,6 +139,27 @@ def create_app(config=None):
             logging.debug(f"view_count column migration: {e}")
             pass
 
+        # Migration: Add AI tagging columns to tags table if they don't exist
+        try:
+            from sqlalchemy import inspect, text
+            inspector = inspect(db.engine)
+            tag_columns = [col['name'] for col in inspector.get_columns('tags')]
+            
+            with db.engine.connect() as conn:
+                if 'confidence' not in tag_columns:
+                    conn.execute(text('ALTER TABLE tags ADD COLUMN confidence FLOAT'))
+                    conn.commit()
+                    logging.info("Added confidence column to tags table")
+                
+                if 'is_ai_generated' not in tag_columns:
+                    conn.execute(text('ALTER TABLE tags ADD COLUMN is_ai_generated BOOLEAN DEFAULT 0 NOT NULL'))
+                    conn.commit()
+                    logging.info("Added is_ai_generated column to tags table")
+        except Exception as e:
+            # Columns might already exist or database doesn't support ALTER TABLE
+            logging.debug(f"AI tagging columns migration: {e}")
+            pass
+
     # ------------------------------------------------------------------
     # 7. Initialise Flask-Login (Req 2.5, 2.6)
     # ------------------------------------------------------------------

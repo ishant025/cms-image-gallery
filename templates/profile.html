@@ -92,12 +92,13 @@
             </div>
 
             <!-- Tags -->
-            {% if image.tags %}
+            {% if image.tag_data %}
               <div class="flex flex-wrap gap-1">
-                {% for tag in image.tags %}
+                {% for tag_info in image.tag_data %}
                   <span class="px-2 py-0.5 text-xs rounded-full font-medium border"
-                        style="background:#f0faf7; color:#0f5c4e; border-color:#a1e0cc;">
-                    #{{ tag }}
+                        style="{% if tag_info.is_ai %}background:#e8f4ff; color:#0066cc; border-color:#99ccff;{% else %}background:#f0faf7; color:#0f5c4e; border-color:#a1e0cc;{% endif %}"
+                        title="{% if tag_info.is_ai %}AI-generated ({{ tag_info.confidence }}% confidence){% else %}User-added tag{% endif %}">
+                    {% if tag_info.is_ai %}🤖{% endif %}#{{ tag_info.name }}{% if tag_info.is_ai %} <span style="opacity:0.7; font-size:0.85em;">({{ tag_info.confidence|int }}%)</span>{% endif %}
                   </span>
                 {% endfor %}
               </div>
