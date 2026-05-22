@@ -50,12 +50,12 @@
                 <p class="mt-2 text-xs text-gray-400 dark:text-gray-600">Max 10 MB · Accepted: JPEG, PNG, GIF</p>
               </div>
 
-              <div id="image-preview-wrapper" class="hidden w-full p-4 flex flex-col items-center">
+              <div id="image-preview-wrapper" class="hidden w-full p-4 flex flex-col items-center pointer-events-auto">
                 <img id="image-preview" src="#" alt="Preview"
                      class="max-h-56 max-w-full rounded-lg object-contain shadow-md" />
                 <p id="preview-file-name" class="mt-3 text-xs font-medium text-gray-600 dark:text-gray-400 truncate max-w-xs"></p>
                 <button type="button" id="clear-file-btn"
-                        class="mt-2 text-xs underline focus:outline-none transition-colors"
+                        class="mt-2 text-xs underline focus:outline-none transition-colors pointer-events-auto"
                         style="color:#ea6c1a;"
                         onmouseover="this.style.color='#c2540e';"
                         onmouseout="this.style.color='#ea6c1a';">
@@ -183,6 +183,8 @@
         previewFileName.textContent = file.name;
         placeholder.classList.add("hidden");
         previewWrapper.classList.remove("hidden");
+        // Disable file input when preview is showing
+        fileInput.style.pointerEvents = "none";
       };
       reader.readAsDataURL(file);
     } else {
@@ -192,6 +194,7 @@
   }
 
   clearBtn.addEventListener("click", function (e) {
+    e.preventDefault();
     e.stopPropagation();
     fileInput.value = "";
     previewImg.src = "#";
@@ -199,6 +202,8 @@
     fileNameDisplay.textContent = "No file chosen";
     previewWrapper.classList.add("hidden");
     placeholder.classList.remove("hidden");
+    // Re-enable file input
+    fileInput.style.pointerEvents = "auto";
   });
 
   // Upload progress tracking
