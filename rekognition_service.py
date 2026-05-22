@@ -71,7 +71,7 @@ def get_rekognition_client():
 # Label detection
 # ---------------------------------------------------------------------------
 
-def detect_labels(s3_bucket: str, s3_key: str, max_labels: int = 10, min_confidence: float = 70.0) -> list[dict]:
+def detect_labels(s3_bucket: str, s3_key: str, max_labels: int = 3, min_confidence: float = 70.0) -> list[dict]:
     """
     Detect objects, scenes, and concepts in an image stored in S3.
 
@@ -85,7 +85,7 @@ def detect_labels(s3_bucket: str, s3_key: str, max_labels: int = 10, min_confide
     s3_key : str
         The S3 object key of the image (e.g. "uploads/abc123.jpg").
     max_labels : int, optional
-        Maximum number of labels to return (default: 10).
+        Maximum number of labels to return (default: 3).
     min_confidence : float, optional
         Minimum confidence threshold (0-100) for returned labels (default: 70.0).
 

@@ -160,7 +160,7 @@ def handle_upload(file, user_id: int, raw_tags: str) -> tuple[bool, str]:
         detected_labels = rekognition_service.detect_labels(
             s3_bucket=bucket,
             s3_key=s3_key,
-            max_labels=10,
+            max_labels=3,
             min_confidence=70.0
         )
         ai_tags = detected_labels
