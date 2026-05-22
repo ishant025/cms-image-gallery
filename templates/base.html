@@ -216,6 +216,52 @@
   </div>
 
   <!-- ================================================================
+       Lightbox Modal (Image Viewer)
+       ================================================================ -->
+  <div id="lightbox-modal"
+       class="fixed inset-0 z-50 hidden items-center justify-center p-4"
+       style="background: rgba(0,0,0,0.9); backdrop-filter: blur(8px);">
+    
+    <!-- Close button -->
+    <button id="lightbox-close"
+            class="absolute top-4 right-4 z-60 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-all duration-200"
+            aria-label="Close lightbox">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+      </svg>
+    </button>
+
+    <!-- Image container -->
+    <div class="relative max-w-6xl max-h-[90vh] w-full flex flex-col items-center">
+      
+      <!-- Image -->
+      <img id="lightbox-image"
+           src=""
+           alt=""
+           class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl" />
+
+      <!-- Info bar -->
+      <div class="mt-4 bg-white/10 backdrop-blur-md rounded-xl px-6 py-3 flex items-center gap-4 text-white">
+        <span id="lightbox-username" class="font-semibold"></span>
+        <span class="text-gray-300">•</span>
+        <span id="lightbox-views" class="text-sm text-gray-300"></span>
+        
+        <!-- Download button -->
+        <a id="lightbox-download"
+           href=""
+           download
+           class="ml-auto px-4 py-2 rounded-lg bg-white/20 hover:bg-white/30 transition-colors duration-200 text-sm font-semibold flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Download
+        </a>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================================================================
        Main Content
        ================================================================ -->
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

@@ -111,6 +111,7 @@ def search_by_tag(query: str) -> list[dict]:
                 "tags": tag_names,
                 "likes": likes_count,
                 "dislikes": dislikes_count,
+                "views": image.view_count,
             }
         )
 

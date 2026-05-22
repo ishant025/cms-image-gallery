@@ -57,6 +57,8 @@ class Image(db.Model):
     uploaded_at = db.Column(
         db.DateTime, nullable=False, default=datetime.utcnow
     )
+    # View counter — tracks how many times this image was viewed (default 0)
+    view_count = db.Column(db.Integer, nullable=False, default=0)
 
     # One image → many tags; deleting an image cascades to its tags (Requirement 7.5)
     tags = db.relationship(

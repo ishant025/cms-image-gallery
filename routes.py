@@ -104,6 +104,7 @@ def register_routes(app):
                         "tags": tag_names,
                         "likes": likes_count,
                         "dislikes": dislikes_count,
+                        "views": image.view_count,
                     }
                 )
 
@@ -363,3 +364,85 @@ def register_routes(app):
         user.is_admin = True
         db.session.commit()
         return jsonify({"success": True, "message": f"'{username}' is now an admin"}), 200
+
+    # ------------------------------------------------------------------
+    # GET /user/<username>  — User profile page
+    # ------------------------------------------------------------------
+    @app.route("/user/<username>")
+    def user_profile(username):
+        """
+        Display a user's profile page with all their uploaded images.
+        """
+        # Find the user by username
+        user = User.query.filter_by(username=username).first()
+        if not user:
+            return render_template("error.html", message=f"User '{username}' not found."), 404
+
+        # Fetch all images uploaded by this user
+        images = (
+            db.session.query(Image)
+            .filter(Image.user_id == user.id)
+            .order_by(Image.uploaded_at.desc())
+            .all()
+        )
+
+        # Build image list with metadata
+        image_list = []
+        for image in images:
+            tag_names = [tag.name for tag in image.tags]
+            likes_count = (
+                db.session.query(func.count(Likes.id))
+                .filter(Likes.image_id == image.id, Likes.reaction == "like")
+                .scalar()
+            ) or 0
+            dislikes_count = (
+                db.session.query(func.count(Likes.id))
+                .filter(Likes.image_id == image.id, Likes.reaction == "dislike")
+                .scalar()
+            ) or 0
+            uploaded_at_str = image.uploaded_at.strftime("%Y-%m-%d") if image.uploaded_at else ""
+
+            image_list.append({
+                "id": image.id,
+                "s3_url": image.s3_url,
+                "s3_key": image.s3_key,
+                "user_id": image.user_id,
+                "uploaded_at": uploaded_at_str,
+                "username": user.username,
+                "tags": tag_names,
+                "likes": likes_count,
+                "dislikes": dislikes_count,
+                "views": image.view_count,
+            })
+
+        # Calculate stats
+        total_uploads = len(images)
+        total_likes = sum(img["likes"] for img in image_list)
+        total_views = sum(img["views"] for img in image_list)
+
+        return render_template(
+            "profile.html",
+            user=user,
+            images=image_list,
+            total_uploads=total_uploads,
+            total_likes=total_likes,
+            total_views=total_views,
+        )
+
+    # ------------------------------------------------------------------
+    # POST /image/<int:image_id>/view  — Increment view count
+    # ------------------------------------------------------------------
+    @app.route("/image/<int:image_id>/view", methods=["POST"])
+    def increment_view(image_id):
+        """
+        Increment the view count for an image.
+        Called when user opens lightbox modal.
+        """
+        image = db.session.get(Image, image_id)
+        if not image:
+            return jsonify({"error": "Not found"}), 404
+
+        image.view_count += 1
+        db.session.commit()
+
+        return jsonify({"success": True, "views": image.view_count}), 200

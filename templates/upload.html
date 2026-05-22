@@ -89,7 +89,7 @@
           </div>
 
           <!-- Submit -->
-          <button type="submit"
+          <button type="submit" id="upload-btn"
             class="w-full flex items-center justify-center gap-2 rounded-xl
                    text-white font-semibold text-sm px-6 py-3
                    shadow-sm hover:shadow-md active:scale-[0.98] transition-all duration-200"
@@ -99,8 +99,20 @@
             <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
             </svg>
-            Upload Image
+            <span id="upload-btn-text">Upload Image</span>
           </button>
+
+          <!-- Progress bar -->
+          <div id="upload-progress" class="hidden mt-4">
+            <div class="flex items-center justify-between text-sm mb-2">
+              <span class="text-gray-600 dark:text-gray-400">Uploading...</span>
+              <span id="progress-percent" class="font-semibold" style="color:#0f5c4e;">0%</span>
+            </div>
+            <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div id="progress-bar" class="h-full transition-all duration-300 rounded-full"
+                   style="width: 0%; background: linear-gradient(90deg, #0f5c4e, #0f8c68);"></div>
+            </div>
+          </div>
 
         </form>
       </div>
@@ -187,6 +199,71 @@
     fileNameDisplay.textContent = "No file chosen";
     previewWrapper.classList.add("hidden");
     placeholder.classList.remove("hidden");
+  });
+
+  // Upload progress tracking
+  const uploadForm = document.getElementById("upload-form");
+  const uploadBtn = document.getElementById("upload-btn");
+  const uploadBtnText = document.getElementById("upload-btn-text");
+  const progressContainer = document.getElementById("upload-progress");
+  const progressBar = document.getElementById("progress-bar");
+  const progressPercent = document.getElementById("progress-percent");
+
+  uploadForm.addEventListener("submit", function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(uploadForm);
+    const xhr = new XMLHttpRequest();
+    
+    // Show progress bar
+    progressContainer.classList.remove("hidden");
+    uploadBtn.disabled = true;
+    uploadBtn.style.opacity = "0.6";
+    uploadBtn.style.cursor = "not-allowed";
+    uploadBtnText.textContent = "Uploading...";
+    
+    // Track upload progress
+    xhr.upload.addEventListener("progress", function(e) {
+      if (e.lengthComputable) {
+        const percent = Math.round((e.loaded / e.total) * 100);
+        progressBar.style.width = percent + "%";
+        progressPercent.textContent = percent + "%";
+      }
+    });
+    
+    // Handle completion
+    xhr.addEventListener("load", function() {
+      if (xhr.status === 200 || xhr.status === 302) {
+        progressBar.style.width = "100%";
+        progressPercent.textContent = "100%";
+        uploadBtnText.textContent = "✓ Success!";
+        setTimeout(() => {
+          window.location.href = "/";
+        }, 500);
+      } else {
+        // Error handling
+        uploadBtn.disabled = false;
+        uploadBtn.style.opacity = "1";
+        uploadBtn.style.cursor = "pointer";
+        uploadBtnText.textContent = "Upload Image";
+        progressContainer.classList.add("hidden");
+        progressBar.style.width = "0%";
+        alert("Upload failed. Please try again.");
+      }
+    });
+    
+    xhr.addEventListener("error", function() {
+      uploadBtn.disabled = false;
+      uploadBtn.style.opacity = "1";
+      uploadBtn.style.cursor = "pointer";
+      uploadBtnText.textContent = "Upload Image";
+      progressContainer.classList.add("hidden");
+      progressBar.style.width = "0%";
+      alert("Upload failed. Please check your connection.");
+    });
+    
+    xhr.open("POST", uploadForm.action);
+    xhr.send(formData);
   });
 })();
 </script>

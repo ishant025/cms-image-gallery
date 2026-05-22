@@ -5,14 +5,118 @@
  *   1. Search     — debounced tag search with fetch and DOM update (Req 6.1–6.5, 6.7, 6.8)
  *   2. Reaction   — like/dislike via fetch with count update (Req 8.1, 8.9, 8.10)
  *   3. Delete     — delete media card via fetch with DOM removal (Req 7.8)
+ *   4. Lightbox   — fullscreen image viewer with view tracking
+ *   5. Toast      — non-blocking notifications
  *
  * Note: Theme toggle is handled entirely in base.html to avoid duplicate handlers.
  */
 
 /* ======================================================================
+   Toast Notification System
+   ====================================================================== */
+
+function showToast(message, type = 'info') {
+  const toast = document.createElement('div');
+  toast.className = `fixed top-24 right-4 z-50 px-6 py-3 rounded-xl shadow-lg text-white text-sm font-medium
+                     transform transition-all duration-300 translate-x-0 opacity-100`;
+  
+  if (type === 'success') {
+    toast.style.background = 'linear-gradient(135deg, #0f5c4e, #0f8c68)';
+  } else if (type === 'error') {
+    toast.style.background = 'linear-gradient(135deg, #ea6c1a, #c2540e)';
+  } else {
+    toast.style.background = 'linear-gradient(135deg, #6b7280, #4b5563)';
+  }
+  
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  // Slide out after 3 seconds
+  setTimeout(() => {
+    toast.style.transform = 'translateX(400px)';
+    toast.style.opacity = '0';
+    setTimeout(() => toast.remove(), 300);
+  }, 3000);
+}
+
+/* ======================================================================
+   Lightbox Modal System
+   ====================================================================== */
+
+function openLightbox(imageId, imageUrl, username, imageIdForView) {
+  const modal = document.getElementById('lightbox-modal');
+  const img = document.getElementById('lightbox-image');
+  const usernameEl = document.getElementById('lightbox-username');
+  const viewsEl = document.getElementById('lightbox-views');
+  const downloadBtn = document.getElementById('lightbox-download');
+  
+  if (!modal || !img) return;
+  
+  // Set image and info
+  img.src = imageUrl;
+  img.alt = `Uploaded by ${username}`;
+  if (usernameEl) usernameEl.textContent = `👤 ${username}`;
+  if (downloadBtn) downloadBtn.href = imageUrl;
+  
+  // Show modal
+  modal.classList.remove('hidden');
+  modal.classList.add('flex');
+  
+  // Increment view count
+  fetch(`/image/${imageIdForView}/view`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.views && viewsEl) {
+      viewsEl.textContent = `👁️ ${data.views} views`;
+    }
+  })
+  .catch(err => console.error('View tracking failed:', err));
+}
+
+function closeLightbox() {
+  const modal = document.getElementById('lightbox-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+  }
+}
+
+// Make functions global so onclick can access them
+window.openLightbox = openLightbox;
+window.closeLightbox = closeLightbox;
+
+/* ======================================================================
    DOMContentLoaded — wire up all interactive modules after DOM is ready
    ====================================================================== */
 document.addEventListener('DOMContentLoaded', function () {
+
+  /* ====================================================================
+     Lightbox Close Handlers
+     ==================================================================== */
+  
+  const lightboxClose = document.getElementById('lightbox-close');
+  const lightboxModal = document.getElementById('lightbox-modal');
+  
+  if (lightboxClose) {
+    lightboxClose.addEventListener('click', closeLightbox);
+  }
+  
+  if (lightboxModal) {
+    // Close on backdrop click
+    lightboxModal.addEventListener('click', function(e) {
+      if (e.target === lightboxModal) closeLightbox();
+    });
+    
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && !lightboxModal.classList.contains('hidden')) {
+        closeLightbox();
+      }
+    });
+  }
 
   /* ====================================================================
      MODULE 1 — Search
@@ -37,8 +141,8 @@ document.addEventListener('DOMContentLoaded', function () {
    * @param {string} message - The error message to display.
    */
   function showSearchError(message) {
-    /* Use a simple alert as the toast mechanism */
-    alert('Search error: ' + message);
+    /* Use toast notification instead of alert */
+    showToast(message, 'error');
   }
 
   /**
@@ -371,8 +475,8 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       })
       .catch(function (err) {
-        /* Show a non-blocking alert on reaction error */
-        alert('Reaction error: ' + (err.message || 'An unexpected error occurred.'));
+        /* Show a non-blocking toast on reaction error */
+        showToast('Reaction error: ' + (err.message || 'An unexpected error occurred.'), 'error');
       });
   });
 
@@ -464,11 +568,11 @@ document.addEventListener('DOMContentLoaded', function () {
               setTimeout(function () { card.remove(); }, 300);
             }
           } else {
-            alert('Delete failed: ' + (data && data.error ? data.error : 'Unknown error'));
+            showToast('Delete failed: ' + (data && data.error ? data.error : 'Unknown error'), 'error');
           }
         })
         .catch(function (err) {
-          alert('Delete error: ' + (err.message || 'An unexpected error occurred.'));
+          showToast('Delete error: ' + (err.message || 'An unexpected error occurred.'), 'error');
         });
     });
   }
