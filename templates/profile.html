@@ -139,13 +139,13 @@
               {% endif %}
 
               <!-- Download button -->
-              <button type="button"
-                 onclick="event.stopPropagation(); downloadImage('{{ image.s3_url }}', 'image-{{ image.id }}.jpg');"
+              <a href="/download/{{ image.id }}"
+                 onclick="event.stopPropagation();"
                  class="ml-auto text-sm text-gray-400 hover:text-blue-500 dark:text-gray-500 dark:hover:text-blue-400
-                        transition-colors duration-200 cursor-pointer"
+                        transition-colors duration-200"
                  title="Download image">
                 ⬇️
-              </button>
+              </a>
 
               <!-- Delete button — owner OR admin can delete -->
               {% if current_user.is_authenticated and (current_user.id == image.user_id or current_user.is_admin) %}

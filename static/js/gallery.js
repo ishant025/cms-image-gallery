@@ -12,24 +12,8 @@
  */
 
 /* ======================================================================
-   Download Helper Function
+   Download Helper Function (deprecated - now using direct links)
    ====================================================================== */
-
-function downloadImage(url, filename) {
-  // Create a temporary anchor element and trigger download
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename || 'image.jpg';
-  a.target = '_blank';
-  a.rel = 'noopener noreferrer';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  showToast('Download started!', 'success');
-}
-
-// Make function global
-window.downloadImage = downloadImage;
 
 /* ======================================================================
    Toast Notification System
@@ -76,7 +60,8 @@ function openLightbox(imageId, imageUrl, username, imageIdForView) {
   img.src = imageUrl;
   img.alt = `Uploaded by ${username}`;
   if (usernameEl) usernameEl.textContent = `👤 ${username}`;
-  if (downloadBtn) downloadBtn.href = imageUrl;
+  // Set download button to use the download route
+  if (downloadBtn) downloadBtn.href = `/download/${imageIdForView}`;
   
   // Show modal
   modal.classList.remove('hidden');
@@ -225,12 +210,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* Download button - always show */
     var downloadHTML = 
-      '<button type="button" ' +
-      'onclick="event.stopPropagation(); downloadImage(\'' + escapeAttr(image.s3_url) + '\', \'image-' + image.id + '.jpg\');" ' +
+      '<a href="/download/' + image.id + '" ' +
+      'onclick="event.stopPropagation();" ' +
       'class="' + (window.currentUserId && window.currentUserId === image.user_id ? '' : 'ml-auto ') + 
       'text-sm text-gray-400 hover:text-blue-500 dark:text-gray-500 dark:hover:text-blue-400 ' +
-      'transition-colors duration-200 cursor-pointer" ' +
-      'title="Download image">⬇️</button>';
+      'transition-colors duration-200" ' +
+      'title="Download image">⬇️</a>';
 
     /* Show delete button only if the current user owns this image */
     var deleteHTML = '';

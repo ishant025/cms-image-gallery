@@ -366,6 +366,42 @@ def register_routes(app):
         return jsonify({"success": True, "message": f"'{username}' is now an admin"}), 200
 
     # ------------------------------------------------------------------
+    # GET /download/<int:image_id>  — Download image with proper headers
+    # ------------------------------------------------------------------
+    @app.route("/download/<int:image_id>")
+    def download_image(image_id):
+        """
+        Proxy download for S3 images with Content-Disposition header.
+        This forces the browser to download instead of displaying.
+        """
+        import requests
+        from flask import Response
+        
+        # Get the image from database
+        image = db.session.get(Image, image_id)
+        if not image:
+            return "Image not found", 404
+        
+        try:
+            # Fetch the image from S3
+            response = requests.get(image.s3_url, stream=True)
+            
+            # Determine filename from s3_key
+            filename = image.s3_key.split('/')[-1]
+            
+            # Return with Content-Disposition header to force download
+            return Response(
+                response.iter_content(chunk_size=8192),
+                headers={
+                    'Content-Type': response.headers.get('Content-Type', 'image/jpeg'),
+                    'Content-Disposition': f'attachment; filename="{filename}"'
+                }
+            )
+        except Exception as e:
+            logger.error(f"Download failed for image {image_id}: {e}")
+            return "Download failed", 500
+
+    # ------------------------------------------------------------------
     # GET /user/<username>  — User profile page
     # ------------------------------------------------------------------
     @app.route("/user/<username>")
