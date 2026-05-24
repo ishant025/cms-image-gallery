@@ -132,6 +132,7 @@ document.addEventListener('DOMContentLoaded', function () {
   var searchBtn = document.getElementById('search-btn');
   var galleryGrid = document.getElementById('gallery-grid');
   var noResults = document.getElementById('no-results');
+  var skeletonLoader = document.getElementById('skeleton-loader');
 
   /* Store the original gallery HTML on load so it can be restored (Req 6.5) */
   var originalGalleryHTML = galleryGrid ? galleryGrid.innerHTML : '';
@@ -274,9 +275,10 @@ document.addEventListener('DOMContentLoaded', function () {
     /* Assemble the full card HTML matching the structure in index.html */
     return (
       '<div id="image-card-' + image.id + '" ' +
-      'class="break-inside-avoid mb-4 bg-white dark:bg-gray-800 rounded-2xl shadow-md ' +
+      'class="break-inside-avoid mb-4 rounded-2xl shadow-md ' +
       'overflow-hidden card-fade-in hover:shadow-xl transition-all duration-300 ' +
-      'border border-stone-100 dark:border-gray-700">' +
+      'backdrop-blur-md bg-white/80 dark:bg-gray-800/80 ' +
+      'border border-white/20 dark:border-gray-700/50">' +
 
         '<div class="overflow-hidden">' +
           '<img src="' + escapeAttr(image.s3_url) + '" ' +
@@ -286,7 +288,7 @@ document.addEventListener('DOMContentLoaded', function () {
           'class="w-full object-cover rounded-t-2xl transition-transform duration-300 hover:scale-105 cursor-pointer" />' +
         '</div>' +
 
-        '<div class="p-3 space-y-2">' +
+        '<div class="p-3 space-y-2 backdrop-blur-sm bg-white/60 dark:bg-gray-800/60">' +
 
           '<div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">' +
             '<a href="/user/' + escapeAttr(image.username) + '" ' +
@@ -355,6 +357,17 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
+    /* Show skeleton loader while searching */
+    if (galleryGrid) {
+      galleryGrid.classList.add('hidden');
+    }
+    if (skeletonLoader) {
+      skeletonLoader.classList.remove('hidden');
+    }
+    if (noResults) {
+      noResults.classList.add('hidden');
+    }
+
     /* Call the search endpoint via fetch (Requirement 6.2) */
     fetch('/search?q=' + encodeURIComponent(trimmed))
       .then(function (response) {
@@ -367,6 +380,14 @@ document.addEventListener('DOMContentLoaded', function () {
         return response.json();
       })
       .then(function (results) {
+        /* Hide skeleton loader */
+        if (skeletonLoader) {
+          skeletonLoader.classList.add('hidden');
+        }
+        if (galleryGrid) {
+          galleryGrid.classList.remove('hidden');
+        }
+
         /* Hide the no-results message before updating the grid */
         if (noResults) {
           noResults.classList.add('hidden');
@@ -395,6 +416,13 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       })
       .catch(function (err) {
+        /* Hide skeleton loader on error */
+        if (skeletonLoader) {
+          skeletonLoader.classList.add('hidden');
+        }
+        if (galleryGrid) {
+          galleryGrid.classList.remove('hidden');
+        }
         /* Fetch or parse error — show error message, do NOT update grid (Req 6.7) */
         showSearchError(err.message || 'An unexpected error occurred.');
       });
@@ -405,7 +433,11 @@ document.addEventListener('DOMContentLoaded', function () {
    * Called when the search bar is cleared (Requirement 6.5).
    */
   function restoreGallery() {
+    if (skeletonLoader) {
+      skeletonLoader.classList.add('hidden');
+    }
     if (galleryGrid) {
+      galleryGrid.classList.remove('hidden');
       galleryGrid.innerHTML = originalGalleryHTML;
     }
     /* Hide the no-results message when restoring the full gallery */
