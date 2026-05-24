@@ -59,10 +59,10 @@
 
   {% block head %}{% endblock %}
 </head>
-<body class="min-h-screen transition-colors duration-300 relative overflow-x-hidden">
+<body class="bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300 relative overflow-x-hidden">
 
   <!-- Animated gradient background (light mode only) -->
-  <div class="fixed inset-0 -z-10 bg-gradient-to-br from-stone-50 via-teal-50/30 to-orange-50/20 dark:bg-gray-950"></div>
+  <div class="fixed inset-0 -z-10 bg-gradient-to-br from-stone-50 via-teal-50/30 to-orange-50/20 dark:hidden"></div>
   
   <!-- Animated orbs (light mode only) -->
   <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none dark:hidden">
