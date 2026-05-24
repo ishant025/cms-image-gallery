@@ -96,6 +96,10 @@
                      px-4 py-2.5 text-sm focus:outline-none transition-colors duration-200"
               onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
               onblur="this.style.boxShadow=''; this.style.borderColor='';" />
+            
+            <!-- Hidden input to track AI tags with confidence -->
+            <input id="ai-tags-data" type="hidden" name="ai_tags_data" value="" />
+            
             <p class="mt-1.5 text-xs text-gray-400 dark:text-gray-500">
               Separate with commas · Max 20 tags · Alphanumeric, spaces, hyphens only
             </p>
@@ -159,8 +163,10 @@
   const aiLoading = document.getElementById("ai-loading");
   const tagsInput = document.getElementById("tags-input");
   const useAllTagsBtn = document.getElementById("use-all-tags-btn");
+  const aiTagsDataInput = document.getElementById("ai-tags-data");
 
   let currentAITags = [];
+  let aiTagsMap = {}; // Maps tag name to confidence score
 
   function onDragOver(e) {
     e.preventDefault();
@@ -222,6 +228,7 @@
     aiLoading.classList.remove("hidden");
     aiTagsList.innerHTML = "";
     currentAITags = [];
+    aiTagsMap = {};
 
     // Call API to get AI suggestions
     fetch("/api/preview-tags", {
@@ -237,6 +244,10 @@
       
       if (data.tags && data.tags.length > 0) {
         currentAITags = data.tags;
+        // Build map of tag name -> confidence
+        data.tags.forEach(tag => {
+          aiTagsMap[tag.name.toLowerCase()] = tag.confidence;
+        });
         renderAITags(data.tags);
       } else {
         aiSuggestions.classList.add("hidden");
@@ -288,6 +299,8 @@
     } else {
       tagsInput.value = tagName;
     }
+    // Update hidden AI tags data
+    updateAITagsData();
     // Flash the input to show it was added
     tagsInput.style.background = "#f0faf7";
     setTimeout(() => {
@@ -295,9 +308,29 @@
     }, 300);
   }
 
+  function updateAITagsData() {
+    // Get current tags from input
+    const currentTags = tagsInput.value.split(",").map(t => t.trim().toLowerCase()).filter(t => t);
+    
+    // Build array of AI tags that are in the input
+    const aiTagsData = [];
+    currentTags.forEach(tagName => {
+      if (aiTagsMap[tagName]) {
+        aiTagsData.push({
+          name: tagName,
+          confidence: aiTagsMap[tagName]
+        });
+      }
+    });
+    
+    // Store as JSON in hidden input
+    aiTagsDataInput.value = JSON.stringify(aiTagsData);
+  }
+
   useAllTagsBtn.addEventListener("click", function() {
     const allTags = currentAITags.map(t => t.name).join(", ");
     tagsInput.value = allTags;
+    updateAITagsData();
     tagsInput.style.background = "#f0faf7";
     setTimeout(() => {
       tagsInput.style.background = "";
@@ -318,6 +351,8 @@
     // Hide AI suggestions
     aiSuggestions.classList.add("hidden");
     currentAITags = [];
+    aiTagsMap = {};
+    aiTagsDataInput.value = "";
   });
 
   // Upload progress tracking

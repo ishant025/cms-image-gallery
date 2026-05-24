@@ -52,7 +52,7 @@ _TAG_ALLOWED_RE = re.compile(r'^[a-zA-Z0-9 \-]+$')  # Allowed characters (Requir
 # Public functions
 # ---------------------------------------------------------------------------
 
-def handle_upload(file, user_id: int, raw_tags: str) -> tuple[bool, str]:
+def handle_upload(file, user_id: int, raw_tags: str, ai_tags_data: list = None) -> tuple[bool, str]:
     """
     Validate *file*, upload it to S3, and persist Image + Tag records.
 
@@ -75,6 +75,9 @@ def handle_upload(file, user_id: int, raw_tags: str) -> tuple[bool, str]:
         The id of the authenticated user performing the upload.
     raw_tags : str
         Comma-separated tag string submitted alongside the file.
+    ai_tags_data : list, optional
+        List of AI-generated tags with confidence scores from preview.
+        Each item is a dict with 'name' and 'confidence' keys.
 
     Returns
     -------
@@ -152,15 +155,23 @@ def handle_upload(file, user_id: int, raw_tags: str) -> tuple[bool, str]:
     # ------------------------------------------------------------------
     # Step 6: Persist Tag records (Requirements 4.1, 4.2)
     # ------------------------------------------------------------------
-    # Note: AI tags are now generated on the client side during preview,
-    # so we only save user-provided manual tags here
+    # Build a map of AI tag names for quick lookup
+    ai_tags_map = {}
+    if ai_tags_data:
+        for ai_tag in ai_tags_data:
+            ai_tags_map[ai_tag['name'].lower()] = ai_tag['confidence']
+    
+    # Save all tags from the input
     for tag_name in valid_tags:
-        # Tags are already lowercased by parse_and_validate_tags (Requirement 4.2)
+        # Check if this tag is AI-generated
+        is_ai = tag_name.lower() in ai_tags_map
+        confidence = ai_tags_map.get(tag_name.lower()) if is_ai else None
+        
         tag = Tag(
             image_id=image.id,
             name=tag_name,
-            confidence=None,
-            is_ai_generated=False
+            confidence=confidence,
+            is_ai_generated=is_ai
         )
         db.session.add(tag)
 

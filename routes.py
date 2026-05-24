@@ -226,16 +226,26 @@ def register_routes(app):
         # POST: extract the uploaded file and tag string
         file = request.files.get("file")
         raw_tags = request.form.get("tags", "")
+        ai_tags_json = request.form.get("ai_tags_data", "")
 
         # Validate that a file was actually submitted
         if not file or not file.filename:
             flash("No file selected. Please choose a file to upload.", "error")
             return render_template("upload.html")
 
+        # Parse AI tags data
+        ai_tags_data = []
+        if ai_tags_json:
+            try:
+                import json
+                ai_tags_data = json.loads(ai_tags_json)
+            except:
+                pass
+
         # Delegate validation, S3 upload, and DB persistence to Upload_Service
         try:
             success, message = upload_service.handle_upload(
-                file, flask_login.current_user.id, raw_tags
+                file, flask_login.current_user.id, raw_tags, ai_tags_data
             )
         except S3UploadError as exc:
             # S3 upload error — flash a user-friendly message (Requirement 3.6)
