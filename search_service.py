@@ -12,7 +12,7 @@ from sqlalchemy import func
 from models import Image, Likes, Tag, User, db
 
 
-def search_by_tag(query: str) -> list[dict]:
+def search_by_tag(query: str, current_user_id: int = None) -> list[dict]:
     """
     Case-insensitive partial match on Tag.name.
 
@@ -27,6 +27,8 @@ def search_by_tag(query: str) -> list[dict]:
         The search string.  An empty or whitespace-only string returns an
         empty list without hitting the database (callers should guard
         against this, but the service is defensive).
+    current_user_id : int, optional
+        The ID of the currently authenticated user (for checking reactions).
 
     Returns
     -------
@@ -111,6 +113,17 @@ def search_by_tag(query: str) -> list[dict]:
         # Format the upload timestamp as YYYY-MM-DD (date only, per spec)
         uploaded_at_str = image.uploaded_at.strftime("%Y-%m-%d") if image.uploaded_at else ""
 
+        # Check current user's reaction (if authenticated)
+        user_reaction = None
+        if current_user_id:
+            user_like = (
+                db.session.query(Likes)
+                .filter(Likes.user_id == current_user_id, Likes.image_id == image.id)
+                .first()
+            )
+            if user_like:
+                user_reaction = user_like.reaction
+
         results.append(
             {
                 "id": image.id,
@@ -122,6 +135,7 @@ def search_by_tag(query: str) -> list[dict]:
                 "likes": likes_count,
                 "dislikes": dislikes_count,
                 "views": image.view_count,
+                "user_reaction": user_reaction,  # "like", "dislike", or None
             }
         )
 

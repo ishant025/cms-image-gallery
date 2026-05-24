@@ -210,19 +210,29 @@ document.addEventListener('DOMContentLoaded', function () {
     var reactionHTML = '';
     if (window.currentUserId) {
       /* Authenticated user — show interactive like/dislike buttons */
+      var likeActive = image.user_reaction === 'like';
+      var dislikeActive = image.user_reaction === 'dislike';
+      
+      var likeColor = likeActive ? '#0f5c4e' : '';
+      var likeHoverColor = likeActive ? '#0a4038' : '#0f5c4e';
+      var dislikeColor = dislikeActive ? '#ea6c1a' : '';
+      var dislikeHoverColor = dislikeActive ? '#c2540e' : '#ea6c1a';
+      
       reactionHTML =
         '<button type="button" data-image-id="' + image.id + '" data-reaction="like" ' +
         'class="reaction-btn flex items-center gap-1 text-sm font-medium ' +
-        'text-gray-500 dark:text-gray-400 transition-colors duration-200 focus:outline-none" ' +
-        'onmouseover="this.style.color=\'#0f5c4e\';" ' +
-        'onmouseout="this.style.color=\'\';">' +
+        'transition-colors duration-200 focus:outline-none" ' +
+        'style="color:' + (likeActive ? '#0f5c4e' : '') + ';" ' +
+        'onmouseover="this.style.color=\'' + likeHoverColor + '\';" ' +
+        'onmouseout="this.style.color=\'' + likeColor + '\';">' +
         '👍 <span id="likes-count-' + image.id + '" class="font-medium">' + (image.likes || 0) + '</span>' +
         '</button>' +
         '<button type="button" data-image-id="' + image.id + '" data-reaction="dislike" ' +
         'class="reaction-btn flex items-center gap-1 text-sm font-medium ' +
-        'text-gray-500 dark:text-gray-400 transition-colors duration-200 focus:outline-none" ' +
-        'onmouseover="this.style.color=\'#ea6c1a\';" ' +
-        'onmouseout="this.style.color=\'\';">' +
+        'transition-colors duration-200 focus:outline-none" ' +
+        'style="color:' + (dislikeActive ? '#ea6c1a' : '') + ';" ' +
+        'onmouseover="this.style.color=\'' + dislikeHoverColor + '\';" ' +
+        'onmouseout="this.style.color=\'' + dislikeColor + '\';">' +
         '👎 <span id="dislikes-count-' + image.id + '" class="font-medium">' + (image.dislikes || 0) + '</span>' +
         '</button>';
     } else {
@@ -526,6 +536,34 @@ document.addEventListener('DOMContentLoaded', function () {
         }
         if (dislikesEl) {
           dislikesEl.textContent = data.dislikes;
+        }
+        
+        /* Update button colors to show active state */
+        var likeBtn = document.querySelector('[data-image-id="' + imageId + '"][data-reaction="like"]');
+        var dislikeBtn = document.querySelector('[data-image-id="' + imageId + '"][data-reaction="dislike"]');
+        
+        if (likeBtn && dislikeBtn) {
+          if (reactionType === 'like') {
+            /* Toggle like button */
+            if (likeBtn.style.color === 'rgb(15, 92, 78)' || likeBtn.style.color === '#0f5c4e') {
+              /* Was active, now off */
+              likeBtn.style.color = '';
+            } else {
+              /* Now active */
+              likeBtn.style.color = '#0f5c4e';
+              dislikeBtn.style.color = ''; /* Turn off dislike */
+            }
+          } else {
+            /* Toggle dislike button */
+            if (dislikeBtn.style.color === 'rgb(234, 108, 26)' || dislikeBtn.style.color === '#ea6c1a') {
+              /* Was active, now off */
+              dislikeBtn.style.color = '';
+            } else {
+              /* Now active */
+              dislikeBtn.style.color = '#ea6c1a';
+              likeBtn.style.color = ''; /* Turn off like */
+            }
+          }
         }
       })
       .catch(function (err) {

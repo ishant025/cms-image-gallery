@@ -98,6 +98,16 @@ def register_routes(app):
                     .scalar()
                 ) or 0
 
+                # Check current user's reaction (if authenticated)
+                user_reaction = None
+                if flask_login.current_user.is_authenticated:
+                    user_like = Likes.query.filter_by(
+                        user_id=flask_login.current_user.id,
+                        image_id=image.id
+                    ).first()
+                    if user_like:
+                        user_reaction = user_like.reaction
+
                 # Format the upload timestamp as YYYY-MM-DD (Requirement 5.4)
                 uploaded_at_str = (
                     image.uploaded_at.strftime("%Y-%m-%d") if image.uploaded_at else ""
@@ -116,6 +126,7 @@ def register_routes(app):
                         "likes": likes_count,
                         "dislikes": dislikes_count,
                         "views": image.view_count,
+                        "user_reaction": user_reaction,  # "like", "dislike", or None
                     }
                 )
 
@@ -349,7 +360,8 @@ def register_routes(app):
         if not query:
             return jsonify([]), 200
         try:
-            results = search_service.search_by_tag(query)
+            current_user_id = flask_login.current_user.id if flask_login.current_user.is_authenticated else None
+            results = search_service.search_by_tag(query, current_user_id)
         except Exception as exc:
             logger.exception("Search failed for query %r: %s", query, exc)
             return jsonify({"error": "Search failed. Please try again."}), 500
@@ -528,6 +540,17 @@ def register_routes(app):
                 .filter(Likes.image_id == image.id, Likes.reaction == "dislike")
                 .scalar()
             ) or 0
+            
+            # Check current user's reaction (if authenticated)
+            user_reaction = None
+            if flask_login.current_user.is_authenticated:
+                user_like = Likes.query.filter_by(
+                    user_id=flask_login.current_user.id,
+                    image_id=image.id
+                ).first()
+                if user_like:
+                    user_reaction = user_like.reaction
+            
             uploaded_at_str = image.uploaded_at.strftime("%Y-%m-%d") if image.uploaded_at else ""
 
             image_list.append({
@@ -542,6 +565,7 @@ def register_routes(app):
                 "likes": likes_count,
                 "dislikes": dislikes_count,
                 "views": image.view_count,
+                "user_reaction": user_reaction,  # "like", "dislike", or None
             })
 
         # Calculate stats

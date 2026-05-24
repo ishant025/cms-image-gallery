@@ -108,9 +108,15 @@
                     data-image-id="{{ image.id }}"
                     data-reaction="like"
                     class="reaction-btn flex items-center gap-1 text-sm font-medium
-                           text-gray-500 dark:text-gray-400 transition-colors duration-200 focus:outline-none"
+                           transition-colors duration-200 focus:outline-none
+                           {% if image.user_reaction == 'like' %}text-teal-600 dark:text-teal-400{% else %}text-gray-500 dark:text-gray-400{% endif %}"
+                    {% if image.user_reaction == 'like' %}
+                    onmouseover="this.style.color='#0a4038';"
+                    onmouseout="this.style.color='#0f5c4e';"
+                    {% else %}
                     onmouseover="this.style.color='#0f5c4e';"
-                    onmouseout="this.style.color='';">
+                    onmouseout="this.style.color='';"
+                    {% endif %}>
                     👍 <span id="likes-count-{{ image.id }}">{{ image.likes }}</span>
                   </button>
 
@@ -119,9 +125,15 @@
                     data-image-id="{{ image.id }}"
                     data-reaction="dislike"
                     class="reaction-btn flex items-center gap-1 text-sm font-medium
-                           text-gray-500 dark:text-gray-400 transition-colors duration-200 focus:outline-none"
+                           transition-colors duration-200 focus:outline-none
+                           {% if image.user_reaction == 'dislike' %}text-orange-600 dark:text-orange-400{% else %}text-gray-500 dark:text-gray-400{% endif %}"
+                    {% if image.user_reaction == 'dislike' %}
+                    onmouseover="this.style.color='#c2540e';"
+                    onmouseout="this.style.color='#ea6c1a';"
+                    {% else %}
                     onmouseover="this.style.color='#ea6c1a';"
-                    onmouseout="this.style.color='';">
+                    onmouseout="this.style.color='';"
+                    {% endif %}>
                     👎 <span id="dislikes-count-{{ image.id }}">{{ image.dislikes }}</span>
                   </button>
 
