@@ -25,11 +25,9 @@ import os
 import re
 from datetime import datetime, timezone
 
-import rekognition_service
 import s3_service
 from botocore.exceptions import BotoCoreError, ClientError
 from models import Image, Tag, db
-from rekognition_service import RekognitionError
 from s3_service import S3UploadError
 
 logger = logging.getLogger(__name__)
@@ -152,44 +150,10 @@ def handle_upload(file, user_id: int, raw_tags: str) -> tuple[bool, str]:
     db.session.flush()
 
     # ------------------------------------------------------------------
-    # Step 5.5: AI Auto-Tagging with AWS Rekognition
-    # ------------------------------------------------------------------
-    ai_tags = []
-    try:
-        # Attempt to detect labels using AWS Rekognition
-        detected_labels = rekognition_service.detect_labels(
-            s3_bucket=bucket,
-            s3_key=s3_key,
-            max_labels=3,
-            min_confidence=70.0
-        )
-        ai_tags = detected_labels
-        logger.info(
-            "AI detected %d labels for image %d: %s",
-            len(ai_tags), image.id, [label['name'] for label in ai_tags]
-        )
-    except RekognitionError as exc:
-        # Log the error but don't fail the upload — AI tagging is optional
-        logger.warning(
-            "AI auto-tagging failed for image %d (s3_key=%s): %s",
-            image.id, s3_key, exc
-        )
-        # Continue without AI tags
-
-    # ------------------------------------------------------------------
     # Step 6: Persist Tag records (Requirements 4.1, 4.2)
     # ------------------------------------------------------------------
-    # First, add AI-generated tags with confidence scores
-    for label in ai_tags:
-        tag = Tag(
-            image_id=image.id,
-            name=label['name'],
-            confidence=label['confidence'],
-            is_ai_generated=True
-        )
-        db.session.add(tag)
-
-    # Then, add user-provided manual tags
+    # Note: AI tags are now generated on the client side during preview,
+    # so we only save user-provided manual tags here
     for tag_name in valid_tags:
         # Tags are already lowercased by parse_and_validate_tags (Requirement 4.2)
         tag = Tag(
@@ -205,11 +169,8 @@ def handle_upload(file, user_id: int, raw_tags: str) -> tuple[bool, str]:
     # ------------------------------------------------------------------
     db.session.commit()
 
-    # Build the success message, including AI tag info and any truncation notification
+    # Build the success message
     success_message = "Upload successful."
-    if ai_tags:
-        ai_tag_names = [label['name'] for label in ai_tags]
-        success_message += f" AI detected {len(ai_tags)} tags: {', '.join(ai_tag_names)}."
     if tag_warning:
         # Append the truncation notice so the user knows some tags were dropped
         success_message = f"{success_message} {tag_warning}"

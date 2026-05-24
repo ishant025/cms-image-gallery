@@ -377,6 +377,76 @@ def register_routes(app):
         return jsonify({"success": True, "message": f"'{username}' is now an admin"}), 200
 
     # ------------------------------------------------------------------
+    # POST /api/preview-tags  — Get AI tag suggestions for preview
+    # ------------------------------------------------------------------
+    @app.route("/api/preview-tags", methods=["POST"])
+    @login_required
+    def preview_tags():
+        """
+        Analyze an uploaded image and return AI-suggested tags without saving.
+        Used for real-time tag suggestions in the upload form.
+        """
+        import base64
+        import io
+        import tempfile
+        
+        # Get the image data from request
+        data = request.get_json(silent=True) or {}
+        image_data = data.get("image")
+        
+        if not image_data:
+            return jsonify({"error": "No image data provided"}), 400
+        
+        try:
+            # Remove data URL prefix if present
+            if "," in image_data:
+                image_data = image_data.split(",")[1]
+            
+            # Decode base64 image
+            image_bytes = base64.b64decode(image_data)
+            
+            # Create a temporary file to upload to S3 for Rekognition
+            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
+                temp_file.write(image_bytes)
+                temp_file_path = temp_file.name
+            
+            # Upload to S3 temporarily
+            bucket = os.environ.get("AWS_S3_BUCKET_NAME")
+            temp_key = f"temp/preview_{flask_login.current_user.id}_{os.path.basename(temp_file_path)}"
+            
+            with open(temp_file_path, "rb") as f:
+                temp_url = s3_service.upload_file(f, bucket, temp_key, "image/jpeg")
+            
+            # Get AI tags
+            import rekognition_service
+            detected_labels = rekognition_service.detect_labels(
+                s3_bucket=bucket,
+                s3_key=temp_key,
+                max_labels=3,
+                min_confidence=70.0
+            )
+            
+            # Delete temporary S3 file
+            try:
+                s3_service.delete_file(bucket, temp_key)
+            except:
+                pass
+            
+            # Delete temporary local file
+            try:
+                os.unlink(temp_file_path)
+            except:
+                pass
+            
+            # Return suggested tags
+            tags = [{"name": label["name"], "confidence": label["confidence"]} for label in detected_labels]
+            return jsonify({"tags": tags}), 200
+            
+        except Exception as e:
+            logger.error(f"Preview tags error: {e}")
+            return jsonify({"error": "Failed to analyze image"}), 500
+
+    # ------------------------------------------------------------------
     # GET /download/<int:image_id>  — Download image with proper headers
     # ------------------------------------------------------------------
     @app.route("/download/<int:image_id>")

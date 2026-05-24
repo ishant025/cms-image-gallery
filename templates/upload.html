@@ -75,6 +75,19 @@
             <label for="tags-input" class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
               Tags <span class="font-normal text-gray-400 dark:text-gray-500">(optional)</span>
             </label>
+            
+            <!-- AI Suggested Tags -->
+            <div id="ai-suggestions" class="hidden mb-3 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-blue-700 dark:text-blue-300">🤖 AI Suggested Tags</span>
+                <button type="button" id="use-all-tags-btn" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">Use all</button>
+              </div>
+              <div id="ai-tags-list" class="flex flex-wrap gap-2"></div>
+              <div id="ai-loading" class="hidden text-xs text-blue-600 dark:text-blue-400 animate-pulse">
+                Analyzing image...
+              </div>
+            </div>
+
             <input id="tags-input" type="text" name="tags" maxlength="255"
               placeholder="e.g. nature, travel, city"
               class="block w-full rounded-xl border border-stone-300 dark:border-gray-600
@@ -141,6 +154,13 @@
   const previewFileName = document.getElementById("preview-file-name");
   const fileNameDisplay = document.getElementById("file-name-display");
   const clearBtn = document.getElementById("clear-file-btn");
+  const aiSuggestions = document.getElementById("ai-suggestions");
+  const aiTagsList = document.getElementById("ai-tags-list");
+  const aiLoading = document.getElementById("ai-loading");
+  const tagsInput = document.getElementById("tags-input");
+  const useAllTagsBtn = document.getElementById("use-all-tags-btn");
+
+  let currentAITags = [];
 
   function onDragOver(e) {
     e.preventDefault();
@@ -185,6 +205,9 @@
         previewWrapper.classList.remove("hidden");
         // Disable file input when preview is showing
         fileInput.style.pointerEvents = "none";
+        
+        // Get AI tag suggestions
+        getAITagSuggestions(e.target.result);
       };
       reader.readAsDataURL(file);
     } else {
@@ -192,6 +215,94 @@
       previewWrapper.classList.add("hidden");
     }
   }
+
+  function getAITagSuggestions(imageDataUrl) {
+    // Show loading state
+    aiSuggestions.classList.remove("hidden");
+    aiLoading.classList.remove("hidden");
+    aiTagsList.innerHTML = "";
+    currentAITags = [];
+
+    // Call API to get AI suggestions
+    fetch("/api/preview-tags", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ image: imageDataUrl })
+    })
+    .then(response => response.json())
+    .then(data => {
+      aiLoading.classList.add("hidden");
+      
+      if (data.tags && data.tags.length > 0) {
+        currentAITags = data.tags;
+        renderAITags(data.tags);
+      } else {
+        aiSuggestions.classList.add("hidden");
+      }
+    })
+    .catch(error => {
+      console.error("AI tagging error:", error);
+      aiLoading.classList.add("hidden");
+      aiSuggestions.classList.add("hidden");
+    });
+  }
+
+  function renderAITags(tags) {
+    aiTagsList.innerHTML = "";
+    tags.forEach(tag => {
+      const badge = document.createElement("button");
+      badge.type = "button";
+      badge.className = "px-3 py-1.5 text-xs rounded-full font-medium transition-all duration-200 border";
+      badge.style.cssText = "background:#e8f4ff; color:#0066cc; border-color:#99ccff;";
+      badge.innerHTML = `🤖 #${tag.name} <span style="opacity:0.7;">(${Math.round(tag.confidence)}%)</span>`;
+      badge.title = "Click to add this tag";
+      
+      badge.addEventListener("click", function() {
+        addTagToInput(tag.name);
+      });
+      
+      badge.addEventListener("mouseover", function() {
+        this.style.background = "#0066cc";
+        this.style.color = "white";
+      });
+      
+      badge.addEventListener("mouseout", function() {
+        this.style.background = "#e8f4ff";
+        this.style.color = "#0066cc";
+      });
+      
+      aiTagsList.appendChild(badge);
+    });
+  }
+
+  function addTagToInput(tagName) {
+    const currentTags = tagsInput.value.trim();
+    if (currentTags) {
+      // Check if tag already exists
+      const tagArray = currentTags.split(",").map(t => t.trim().toLowerCase());
+      if (!tagArray.includes(tagName.toLowerCase())) {
+        tagsInput.value = currentTags + ", " + tagName;
+      }
+    } else {
+      tagsInput.value = tagName;
+    }
+    // Flash the input to show it was added
+    tagsInput.style.background = "#f0faf7";
+    setTimeout(() => {
+      tagsInput.style.background = "";
+    }, 300);
+  }
+
+  useAllTagsBtn.addEventListener("click", function() {
+    const allTags = currentAITags.map(t => t.name).join(", ");
+    tagsInput.value = allTags;
+    tagsInput.style.background = "#f0faf7";
+    setTimeout(() => {
+      tagsInput.style.background = "";
+    }, 300);
+  });
 
   clearBtn.addEventListener("click", function (e) {
     e.preventDefault();
@@ -204,6 +315,9 @@
     placeholder.classList.remove("hidden");
     // Re-enable file input
     fileInput.style.pointerEvents = "auto";
+    // Hide AI suggestions
+    aiSuggestions.classList.add("hidden");
+    currentAITags = [];
   });
 
   // Upload progress tracking
