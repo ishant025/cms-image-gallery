@@ -112,10 +112,12 @@
                   type="button"
                   data-image-id="{{ image.id }}"
                   data-reaction="like"
+                  data-active="{% if image.user_reaction == 'like' %}true{% else %}false{% endif %}"
                   class="reaction-btn flex items-center gap-1 text-sm font-medium
                          transition-colors duration-200 focus:outline-none
                          {% if image.user_reaction == 'like' %}text-teal-600 dark:text-teal-400{% else %}text-gray-500 dark:text-gray-400{% endif %}"
                   {% if image.user_reaction == 'like' %}
+                  style="color:#0f5c4e;"
                   onmouseover="this.style.color='#0a4038';"
                   onmouseout="this.style.color='#0f5c4e';"
                   {% else %}
@@ -129,10 +131,12 @@
                   type="button"
                   data-image-id="{{ image.id }}"
                   data-reaction="dislike"
+                  data-active="{% if image.user_reaction == 'dislike' %}true{% else %}false{% endif %}"
                   class="reaction-btn flex items-center gap-1 text-sm font-medium
                          transition-colors duration-200 focus:outline-none
                          {% if image.user_reaction == 'dislike' %}text-orange-600 dark:text-orange-400{% else %}text-gray-500 dark:text-gray-400{% endif %}"
                   {% if image.user_reaction == 'dislike' %}
+                  style="color:#ea6c1a;"
                   onmouseover="this.style.color='#c2540e';"
                   onmouseout="this.style.color='#ea6c1a';"
                   {% else %}
