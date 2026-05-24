@@ -59,7 +59,20 @@
 
   {% block head %}{% endblock %}
 </head>
-<body class="bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300">
+<body class="min-h-screen transition-colors duration-300 relative overflow-x-hidden">
+
+  <!-- Animated gradient background -->
+  <div class="fixed inset-0 -z-10 bg-gradient-to-br from-stone-50 via-teal-50/30 to-orange-50/20 dark:from-gray-950 dark:via-teal-950/30 dark:to-orange-950/20"></div>
+  
+  <!-- Animated orbs -->
+  <div class="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
+    <!-- Teal orb -->
+    <div class="absolute top-0 -left-40 w-96 h-96 bg-teal-400/20 dark:bg-teal-600/10 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl animate-blob"></div>
+    <!-- Orange orb -->
+    <div class="absolute top-0 -right-40 w-96 h-96 bg-orange-400/20 dark:bg-orange-600/10 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl animate-blob animation-delay-2000"></div>
+    <!-- Gold orb -->
+    <div class="absolute -bottom-40 left-1/2 -translate-x-1/2 w-96 h-96 bg-yellow-400/20 dark:bg-yellow-600/10 rounded-full mix-blend-multiply dark:mix-blend-screen filter blur-3xl animate-blob animation-delay-4000"></div>
+  </div>
 
   <!-- ================================================================
        Navigation Bar
@@ -396,6 +409,36 @@
       }
     });
   </script>
+
+  <!-- Animated background styles -->
+  <style>
+    @keyframes blob {
+      0%, 100% {
+        transform: translate(0, 0) scale(1);
+      }
+      25% {
+        transform: translate(20px, -50px) scale(1.1);
+      }
+      50% {
+        transform: translate(-20px, 20px) scale(0.9);
+      }
+      75% {
+        transform: translate(50px, 50px) scale(1.05);
+      }
+    }
+    
+    .animate-blob {
+      animation: blob 20s infinite ease-in-out;
+    }
+    
+    .animation-delay-2000 {
+      animation-delay: 2s;
+    }
+    
+    .animation-delay-4000 {
+      animation-delay: 4s;
+    }
+  </style>
 
   {% block scripts %}{% endblock %}
 </body>
