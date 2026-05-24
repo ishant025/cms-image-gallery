@@ -388,7 +388,6 @@ def register_routes(app):
         """
         import base64
         import io
-        import tempfile
         
         # Get the image data from request
         data = request.get_json(silent=True) or {}
@@ -405,42 +404,34 @@ def register_routes(app):
             # Decode base64 image
             image_bytes = base64.b64decode(image_data)
             
-            # Create a temporary file to upload to S3 for Rekognition
-            with tempfile.NamedTemporaryFile(delete=False, suffix=".jpg") as temp_file:
-                temp_file.write(image_bytes)
-                temp_file_path = temp_file.name
-            
-            # Upload to S3 temporarily
-            bucket = os.environ.get("AWS_S3_BUCKET_NAME")
-            temp_key = f"temp/preview_{flask_login.current_user.id}_{os.path.basename(temp_file_path)}"
-            
-            with open(temp_file_path, "rb") as f:
-                temp_url = s3_service.upload_file(f, bucket, temp_key, "image/jpeg")
-            
-            # Get AI tags
+            # Use Rekognition directly with image bytes (no S3 upload needed)
             import rekognition_service
-            detected_labels = rekognition_service.detect_labels(
-                s3_bucket=bucket,
-                s3_key=temp_key,
-                max_labels=3,
-                min_confidence=70.0
+            import boto3
+            
+            client = rekognition_service.get_rekognition_client()
+            
+            # Call DetectLabels with image bytes directly
+            response = client.detect_labels(
+                Image={'Bytes': image_bytes},
+                MaxLabels=3,
+                MinConfidence=70.0
             )
             
-            # Delete temporary S3 file
-            try:
-                s3_service.delete_file(bucket, temp_key)
-            except:
-                pass
+            # Extract labels from response
+            detected_labels = []
+            for label in response.get('Labels', []):
+                detected_labels.append({
+                    'name': label['Name'].lower(),
+                    'confidence': round(label['Confidence'], 1)
+                })
             
-            # Delete temporary local file
-            try:
-                os.unlink(temp_file_path)
-            except:
-                pass
+            # Sort by confidence descending
+            detected_labels.sort(key=lambda x: x['confidence'], reverse=True)
+            
+            logger.info(f"Preview AI tags for user {flask_login.current_user.id}: {detected_labels}")
             
             # Return suggested tags
-            tags = [{"name": label["name"], "confidence": label["confidence"]} for label in detected_labels]
-            return jsonify({"tags": tags}), 200
+            return jsonify({"tags": detected_labels}), 200
             
         except Exception as e:
             logger.error(f"Preview tags error: {e}")
