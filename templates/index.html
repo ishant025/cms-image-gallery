@@ -10,6 +10,34 @@
 
 {% block content %}
 
+  <!-- Basic Search bar -->
+  <div class="mb-8">
+    <div class="flex gap-2 max-w-xl mx-auto">
+      <input
+        type="text"
+        id="search-input"
+        maxlength="255"
+        placeholder="🔍 Search by tag…"
+        autocomplete="off"
+        class="flex-1 px-4 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
+               bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+               placeholder-gray-400 dark:placeholder-gray-500
+               focus:outline-none transition-colors duration-200 text-sm"
+        onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
+        onblur="this.style.boxShadow=''; this.style.borderColor='';"
+      />
+      <button
+        id="search-btn"
+        type="button"
+        class="px-5 py-2.5 rounded-xl text-white font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
+        style="background: linear-gradient(135deg, #0f5c4e, #0f8c68);"
+        onmouseover="this.style.background='linear-gradient(135deg, #0a4038, #0f5c4e)';"
+        onmouseout="this.style.background='linear-gradient(135deg, #0f5c4e, #0f8c68)';">
+        Search
+      </button>
+    </div>
+  </div>
+
   <!-- No results message -->
   <div id="no-results" class="hidden text-center py-16 text-gray-500 dark:text-gray-400">
     <p class="text-4xl mb-3">🔍</p>
