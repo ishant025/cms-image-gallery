@@ -53,17 +53,16 @@
           <!-- Skeleton image with shimmer -->
           <div class="w-full bg-gray-300 dark:bg-gray-700 skeleton-shimmer" style="height: {{ [200, 250, 300, 350][i % 4] }}px;"></div>
           <!-- Skeleton content -->
-          <div class="p-3 space-y-2 backdrop-blur-sm bg-white/60 dark:bg-gray-800/60">
+          <div class="p-2.5 space-y-1.5 backdrop-blur-sm bg-white/60 dark:bg-gray-800/60">
             <div class="flex justify-between">
               <div class="h-3 bg-gray-300 dark:bg-gray-700 rounded w-1/3 skeleton-shimmer"></div>
               <div class="h-3 bg-gray-300 dark:bg-gray-700 rounded w-1/4 skeleton-shimmer"></div>
             </div>
-            <div class="h-3 bg-gray-300 dark:bg-gray-700 rounded w-1/4 skeleton-shimmer"></div>
             <div class="flex gap-1">
               <div class="h-5 bg-gray-300 dark:bg-gray-700 rounded-full w-16 skeleton-shimmer"></div>
               <div class="h-5 bg-gray-300 dark:bg-gray-700 rounded-full w-20 skeleton-shimmer"></div>
             </div>
-            <div class="flex gap-3">
+            <div class="flex gap-2.5">
               <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-12 skeleton-shimmer"></div>
               <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-12 skeleton-shimmer"></div>
             </div>
@@ -99,21 +98,19 @@
             </div>
 
             <!-- Card body with glassmorphism -->
-            <div class="p-3 space-y-2 backdrop-blur-sm bg-white/60 dark:bg-gray-800/60">
+            <div class="p-2.5 space-y-1.5 backdrop-blur-sm bg-white/60 dark:bg-gray-800/60">
 
-              <!-- Uploader and date -->
+              <!-- Uploader, date, and views in one line -->
               <div class="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
                 <a href="{{ url_for('user_profile', username=image.username) }}" 
-                   class="font-semibold hover:underline transition-colors duration-200" 
+                   class="font-semibold hover:underline transition-colors duration-200 truncate" 
                    style="color:#0f5c4e;">
                   👤 {{ image.username }}
                 </a>
-                <span class="text-gray-400 dark:text-gray-500">{{ image.uploaded_at }}</span>
-              </div>
-
-              <!-- View count -->
-              <div class="text-xs text-gray-400 dark:text-gray-500">
-                👁️ {{ image.get('views', 0) }} views
+                <div class="flex items-center gap-2 text-xs">
+                  <span class="text-gray-400 dark:text-gray-500">👁️ {{ image.get('views', 0) }}</span>
+                  <span class="text-gray-400 dark:text-gray-500">{{ image.uploaded_at }}</span>
+                </div>
               </div>
 
               <!-- Tags -->
@@ -137,7 +134,7 @@
               {% endif %}
 
               <!-- Like / Dislike / Delete -->
-              <div class="flex items-center gap-3 pt-1">
+              <div class="flex items-center gap-2.5 pt-0.5">
 
                 {% if current_user.is_authenticated %}
                   <button
