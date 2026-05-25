@@ -30,7 +30,7 @@ A modern, cloud-powered Image & GIF Gallery — built with Flask, AWS S3, Neon P
 - 🔐 **Secure Authentication** — Sign up, log in, and log out with hashed passwords (Werkzeug + Flask-Login)
 - ☁️ **Cloud Storage** — Images uploaded directly to AWS S3 with public-read URLs
 - 🏷️ **Tag System** — Add up to 20 tags per image for easy discovery
-- 🔍 **Advanced Search** — Multi-tag search with AND logic, date range filters, uploader filtering, and minimum likes threshold
+- 🔍 **Live Search** — Dynamic, case-insensitive partial tag search without page reloads
 - 👍 **Like / Dislike** — One reaction per user per image with smart toggle logic
 - 🗑️ **Owner-Only Deletion** — Only the uploader can delete an image, with a confirmation modal
 - 👑 **Admin Role** — Admin can delete any user's image for moderation
@@ -43,8 +43,7 @@ A modern, cloud-powered Image & GIF Gallery — built with Flask, AWS S3, Neon P
 - 📦 **Bulk Operations** — Select multiple images for batch delete or download (up to 50 images)
 - 🎨 **Live Image Filters** — Real-time preview of grayscale, sepia, brightness, contrast, and saturation adjustments
 - ⚡ **Progressive Loading** — Blur-up effect with thumbnail-to-full-image transitions for faster perceived load times
-- 🔍 **Smart Search** — Advanced filtering by tags, date range, uploader, and popularity with multiple sort options
-- ⚙️ **User Preferences** — Persistent settings for grid density, sort order, and filter presets
+- ⚙️ **User Preferences** — Persistent settings for grid density and view mode
 - ↩️ **Undo Delete** — 30-second grace period to restore accidentally deleted images
 - 📱 **Mobile Experience** — Touch gestures (swipe, pinch-to-zoom), bottom navigation, and optimized mobile UI
 
@@ -283,11 +282,10 @@ cms-image-gallery/
 ├── static/                     # Static assets
 │   ├── js/
 │   │   ├── gallery.js          # Core gallery functionality
-│   │   ├── advanced-viewer.js  # Lightbox image viewer
+│   │   ├── advanced-viewer.js  # Lightbox image viewer (not used)
 │   │   ├── bulk-operations.js  # Multi-select and bulk actions
 │   │   ├── filter-preview.js   # Live image filter preview
 │   │   ├── progressive-loading.js  # Blur-up image loading
-│   │   ├── smart-search.js     # Advanced search interface
 │   │   ├── user-preferences.js # Settings persistence
 │   │   ├── undo-delete.js      # Undo functionality
 │   │   └── mobile-gestures.js  # Touch gesture handling

@@ -36,149 +36,6 @@
         onmouseout="this.style.background='linear-gradient(135deg, #0f5c4e, #0f8c68)';">
         Search
       </button>
-      <button
-        id="toggle-advanced-search"
-        type="button"
-        class="px-4 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
-               bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300
-               font-semibold text-sm transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
-        title="Toggle advanced search">
-        🔍+
-      </button>
-    </div>
-
-    <!-- Advanced Search Panel -->
-    <div id="advanced-search-panel" class="hidden max-w-4xl mx-auto p-6 rounded-2xl
-                                           backdrop-blur-md bg-white/80 dark:bg-gray-800/80
-                                           border border-white/20 dark:border-gray-700/50 shadow-lg">
-      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">🔍 Advanced Search</h3>
-      
-      <!-- Multi-tag Input -->
-      <div class="mb-4">
-        <label for="smart-tag-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Tags (multiple)
-        </label>
-        <div class="relative">
-          <input
-            type="text"
-            id="smart-tag-input"
-            placeholder="Type to search tags..."
-            autocomplete="off"
-            class="w-full px-4 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
-                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                   placeholder-gray-400 dark:placeholder-gray-500
-                   focus:outline-none transition-colors duration-200 text-sm"
-            onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
-            onblur="this.style.boxShadow=''; this.style.borderColor='';"
-          />
-          <!-- Tag suggestions dropdown -->
-          <div id="tag-suggestions" class="hidden absolute z-10 w-full mt-1 rounded-xl border border-stone-300 dark:border-gray-600
-                                           bg-white dark:bg-gray-800 shadow-lg max-h-48 overflow-y-auto">
-          </div>
-        </div>
-        <!-- Selected tags display -->
-        <div id="selected-tags" class="mt-2 flex flex-wrap gap-2">
-          <span class="text-sm text-gray-400">No tags selected</span>
-        </div>
-      </div>
-
-      <!-- Date Range Filter -->
-      <div class="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label for="date-start" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            From Date
-          </label>
-          <input
-            type="date"
-            id="date-start"
-            class="w-full px-4 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
-                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                   focus:outline-none transition-colors duration-200 text-sm"
-            onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
-            onblur="this.style.boxShadow=''; this.style.borderColor='';"
-          />
-        </div>
-        <div>
-          <label for="date-end" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            To Date
-          </label>
-          <input
-            type="date"
-            id="date-end"
-            class="w-full px-4 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
-                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                   focus:outline-none transition-colors duration-200 text-sm"
-            onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
-            onblur="this.style.boxShadow=''; this.style.borderColor='';"
-          />
-        </div>
-      </div>
-
-      <!-- Uploader Filter -->
-      <div class="mb-4">
-        <label for="uploader-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Uploader
-        </label>
-        <select
-          id="uploader-filter"
-          class="w-full px-4 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
-                 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                 focus:outline-none transition-colors duration-200 text-sm cursor-pointer"
-          onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
-          onblur="this.style.boxShadow=''; this.style.borderColor='';">
-          <option value="">All uploaders</option>
-          <!-- Options will be populated dynamically -->
-        </select>
-      </div>
-
-      <!-- Minimum Likes Filter -->
-      <div class="mb-4">
-        <label for="min-likes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Minimum Likes: <span id="min-likes-value" class="font-bold text-teal-600 dark:text-teal-400">0</span>
-        </label>
-        <input
-          type="range"
-          id="min-likes"
-          min="0"
-          max="50"
-          value="0"
-          step="1"
-          class="w-full h-2 rounded-lg appearance-none cursor-pointer
-                 bg-gray-200 dark:bg-gray-700"
-          style="accent-color: #0f5c4e;"
-        />
-      </div>
-
-      <!-- Active Filters Display -->
-      <div class="mb-4">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Active Filters
-        </label>
-        <div id="active-filters" class="flex flex-wrap gap-2">
-          <span class="text-sm text-gray-400">No active filters</span>
-        </div>
-      </div>
-
-      <!-- Action Buttons -->
-      <div class="flex gap-3 justify-end">
-        <button
-          id="clear-filters-btn"
-          type="button"
-          class="px-5 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
-                 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300
-                 font-semibold text-sm transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700">
-          Clear All
-        </button>
-        <button
-          id="smart-search-btn"
-          type="button"
-          class="px-5 py-2.5 rounded-xl text-white font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
-          style="background: linear-gradient(135deg, #0f5c4e, #0f8c68);"
-          onmouseover="this.style.background='linear-gradient(135deg, #0a4038, #0f5c4e)';"
-          onmouseout="this.style.background='linear-gradient(135deg, #0f5c4e, #0f8c68)';">
-          Search
-        </button>
-      </div>
     </div>
 
     <!-- Preferences Controls -->
@@ -199,24 +56,6 @@
           <option value="3">3 columns</option>
           <option value="4" selected>4 columns</option>
           <option value="5">5 columns</option>
-        </select>
-      </div>
-
-      <!-- Sort Order Selector -->
-      <div class="flex items-center gap-2">
-        <label for="sort-order-selector" class="text-sm font-medium text-gray-700 dark:text-gray-300">
-          🔄 Sort:
-        </label>
-        <select
-          id="sort-order-selector"
-          class="px-3 py-1.5 rounded-lg border border-stone-300 dark:border-gray-600
-                 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                 text-sm focus:outline-none transition-colors duration-200 cursor-pointer"
-          onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
-          onblur="this.style.boxShadow=''; this.style.borderColor='';">
-          <option value="newest" selected>Newest First</option>
-          <option value="most_liked">Most Liked</option>
-          <option value="most_viewed">Most Viewed</option>
         </select>
       </div>
 
@@ -636,7 +475,6 @@
 <script src="{{ url_for('static', filename='js/image-viewer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/bulk-operations.js') }}"></script>
 <script src="{{ url_for('static', filename='js/progressive-loading.js') }}"></script>
-<script src="{{ url_for('static', filename='js/smart-search.js') }}"></script>
 <script src="{{ url_for('static', filename='js/undo-delete.js') }}"></script>
 <script src="{{ url_for('static', filename='js/mobile-gestures.js') }}"></script>
 
@@ -645,10 +483,9 @@
    * Premium UX Enhancements - Module Initialization
    * 
    * This script wires together all JavaScript modules for the premium UX enhancements:
-   * - Preferences (grid size, sort order, view mode)
+   * - Preferences (grid size, view mode)
    * - Progressive Loading (blur-up effect)
    * - Bulk Operations (multi-select, bulk delete/download)
-   * - Smart Search (multi-tag search with filters)
    * - Image Viewer (zoom, pan, rotate in lightbox)
    * - Undo Delete (toast notifications with undo)
    * - Mobile Gestures (swipe, pull-to-refresh)
@@ -667,14 +504,11 @@
     // 3. Initialize Bulk Operations (authenticated users only)
     initializeBulkOperations();
     
-    // 4. Initialize Smart Search
-    initializeSmartSearch();
-    
-    // 5. Initialize Mobile Gestures
+    // 4. Initialize Mobile Gestures
     initializeMobileGestures();
     
-    // 6. Image Viewer is auto-initialized when lightbox opens (via image-viewer.js)
-    // 7. Undo Delete is auto-initialized (via undo-delete.js)
+    // 5. Image Viewer is auto-initialized when lightbox opens (via image-viewer.js)
+    // 6. Undo Delete is auto-initialized (via undo-delete.js)
     
     console.log('✅ Premium UX Enhancements initialized successfully');
   });
@@ -692,7 +526,6 @@
       
       // Get UI elements
       const gridSizeSelector = document.getElementById('grid-size-selector');
-      const sortOrderSelector = document.getElementById('sort-order-selector');
       const viewModeSelector = document.getElementById('view-mode-selector');
       const galleryGridContainer = document.getElementById('gallery-grid-container');
       const skeletonGridContainer = document.getElementById('skeleton-grid-container');
@@ -713,23 +546,6 @@
         });
       }
 
-      // Apply sort order preference
-      if (sortOrderSelector) {
-        // Set selector to saved preference
-        sortOrderSelector.value = preferences.sortOrder;
-        
-        // Listen for changes
-        sortOrderSelector.addEventListener('change', function() {
-          const newSortOrder = this.value;
-          Preferences.setSortOrder(newSortOrder);
-          
-          // Reload page with sort parameter
-          const url = new URL(window.location.href);
-          url.searchParams.set('sort', newSortOrder);
-          window.location.href = url.toString();
-        });
-      }
-
       // Apply view mode preference
       if (viewModeSelector) {
         // Set selector to saved preference
@@ -737,6 +553,17 @@
         
         // Listen for changes
         viewModeSelector.addEventListener('change', function() {
+          const newViewMode = this.value;
+          Preferences.setViewMode(newViewMode);
+          applyViewMode(newViewMode);
+        });
+      }
+
+      console.log('✅ Preferences initialized:', preferences);
+    } catch (error) {
+      console.error('❌ Error initializing preferences:', error);
+    }
+  }.addEventListener('change', function() {
           const newViewMode = this.value;
           Preferences.setViewMode(newViewMode);
           applyViewMode(newViewMode);
