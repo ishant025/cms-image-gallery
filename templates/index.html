@@ -423,7 +423,6 @@
 <script src="{{ url_for('static', filename='js/image-viewer.js') }}"></script>
 <script src="{{ url_for('static', filename='js/bulk-operations.js') }}"></script>
 <script src="{{ url_for('static', filename='js/progressive-loading.js') }}"></script>
-<script src="{{ url_for('static', filename='js/undo-delete.js') }}"></script>
 <script src="{{ url_for('static', filename='js/mobile-gestures.js') }}"></script>
 
 <script>
@@ -434,7 +433,6 @@
    * - Progressive Loading (blur-up effect)
    * - Bulk Operations (multi-select, bulk delete/download)
    * - Image Viewer (zoom, pan, rotate in lightbox)
-   * - Undo Delete (toast notifications with undo)
    * - Mobile Gestures (swipe, pull-to-refresh)
    */
   
@@ -452,7 +450,6 @@
     initializeMobileGestures();
     
     // 4. Image Viewer is auto-initialized when lightbox opens (via image-viewer.js)
-    // 5. Undo Delete is auto-initialized (via undo-delete.js)
     
     console.log('✅ Premium UX Enhancements initialized successfully');
   });.addEventListener('change', function() {
