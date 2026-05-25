@@ -4,8 +4,6 @@
 {% block head %}
 <!-- Progressive Loading CSS -->
 <link rel="stylesheet" href="{{ url_for('static', filename='css/progressive-loading.css') }}">
-<!-- Bulk Operations CSS -->
-<link rel="stylesheet" href="{{ url_for('static', filename='css/bulk-operations.css') }}">
 {% endblock %}
 
 {% block content %}
@@ -421,7 +419,6 @@
 
 <!-- Premium UX Enhancement Modules -->
 <script src="{{ url_for('static', filename='js/image-viewer.js') }}"></script>
-<script src="{{ url_for('static', filename='js/bulk-operations.js') }}"></script>
 <script src="{{ url_for('static', filename='js/progressive-loading.js') }}"></script>
 <script src="{{ url_for('static', filename='js/mobile-gestures.js') }}"></script>
 
@@ -431,7 +428,6 @@
    * 
    * This script wires together all JavaScript modules for the premium UX enhancements:
    * - Progressive Loading (blur-up effect)
-   * - Bulk Operations (multi-select, bulk delete/download)
    * - Image Viewer (zoom, pan, rotate in lightbox)
    * - Mobile Gestures (swipe, pull-to-refresh)
    */
@@ -443,13 +439,10 @@
     // 1. Initialize Progressive Loading
     initializeProgressiveLoading();
     
-    // 2. Initialize Bulk Operations (authenticated users only)
-    initializeBulkOperations();
-    
-    // 3. Initialize Mobile Gestures
+    // 2. Initialize Mobile Gestures
     initializeMobileGestures();
     
-    // 4. Image Viewer is auto-initialized when lightbox opens (via image-viewer.js)
+    // 3. Image Viewer is auto-initialized when lightbox opens (via image-viewer.js)
     
     console.log('✅ Premium UX Enhancements initialized successfully');
   });.addEventListener('change', function() {
