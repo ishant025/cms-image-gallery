@@ -42,25 +42,25 @@
   <div id="skeleton-loader" class="hidden">
     <div class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4">
       {% for i in range(8) %}
-        <div class="break-inside-avoid mb-4 rounded-2xl overflow-hidden animate-pulse
+        <div class="break-inside-avoid mb-4 rounded-2xl overflow-hidden
                     backdrop-blur-md bg-white/80 dark:bg-gray-800/80
                     border border-white/20 dark:border-gray-700/50">
-          <!-- Skeleton image -->
-          <div class="w-full bg-gray-300 dark:bg-gray-700" style="height: {{ [200, 250, 300, 350][i % 4] }}px;"></div>
+          <!-- Skeleton image with shimmer -->
+          <div class="w-full bg-gray-300 dark:bg-gray-700 skeleton-shimmer" style="height: {{ [200, 250, 300, 350][i % 4] }}px;"></div>
           <!-- Skeleton content -->
           <div class="p-3 space-y-2 backdrop-blur-sm bg-white/60 dark:bg-gray-800/60">
             <div class="flex justify-between">
-              <div class="h-3 bg-gray-300 dark:bg-gray-700 rounded w-1/3"></div>
-              <div class="h-3 bg-gray-300 dark:bg-gray-700 rounded w-1/4"></div>
+              <div class="h-3 bg-gray-300 dark:bg-gray-700 rounded w-1/3 skeleton-shimmer"></div>
+              <div class="h-3 bg-gray-300 dark:bg-gray-700 rounded w-1/4 skeleton-shimmer"></div>
             </div>
-            <div class="h-3 bg-gray-300 dark:bg-gray-700 rounded w-1/4"></div>
+            <div class="h-3 bg-gray-300 dark:bg-gray-700 rounded w-1/4 skeleton-shimmer"></div>
             <div class="flex gap-1">
-              <div class="h-5 bg-gray-300 dark:bg-gray-700 rounded-full w-16"></div>
-              <div class="h-5 bg-gray-300 dark:bg-gray-700 rounded-full w-20"></div>
+              <div class="h-5 bg-gray-300 dark:bg-gray-700 rounded-full w-16 skeleton-shimmer"></div>
+              <div class="h-5 bg-gray-300 dark:bg-gray-700 rounded-full w-20 skeleton-shimmer"></div>
             </div>
             <div class="flex gap-3">
-              <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-12"></div>
-              <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-12"></div>
+              <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-12 skeleton-shimmer"></div>
+              <div class="h-4 bg-gray-300 dark:bg-gray-700 rounded w-12 skeleton-shimmer"></div>
             </div>
           </div>
         </div>
@@ -81,15 +81,21 @@
                       backdrop-blur-md bg-white/80 dark:bg-gray-800/80
                       border border-white/20 dark:border-gray-700/50">
 
-            <!-- Image -->
-            <div class="overflow-hidden">
+            <!-- Image with hover overlay -->
+            <div class="image-container overflow-hidden rounded-t-2xl">
               <img
                 src="{{ image.s3_url }}"
                 alt="Uploaded by {{ image.username }}"
                 loading="lazy"
                 onclick="openLightbox({{ image.id }}, '{{ image.s3_url }}', '{{ image.username }}', {{ image.id }})"
-                class="w-full object-cover rounded-t-2xl transition-transform duration-300 hover:scale-105 cursor-pointer"
+                class="w-full object-cover cursor-pointer"
               />
+              <div class="image-overlay">
+                <div class="text-white text-sm">
+                  <p class="font-semibold">{{ image.username }}</p>
+                  <p class="text-xs opacity-90">👁️ {{ image.views }} views</p>
+                </div>
+              </div>
             </div>
 
             <!-- Card body with glassmorphism -->
@@ -242,7 +248,20 @@
     from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  .card-fade-in { animation: fadeIn 0.4s ease-out both; }
+  
+  /* Staggered card entrance */
+  .card-fade-in {
+    animation: fadeIn 0.5s ease-out both;
+  }
+  .card-fade-in:nth-child(1) { animation-delay: 0ms; }
+  .card-fade-in:nth-child(2) { animation-delay: 50ms; }
+  .card-fade-in:nth-child(3) { animation-delay: 100ms; }
+  .card-fade-in:nth-child(4) { animation-delay: 150ms; }
+  .card-fade-in:nth-child(5) { animation-delay: 200ms; }
+  .card-fade-in:nth-child(6) { animation-delay: 250ms; }
+  .card-fade-in:nth-child(7) { animation-delay: 300ms; }
+  .card-fade-in:nth-child(8) { animation-delay: 350ms; }
+  .card-fade-in:nth-child(n+9) { animation-delay: 400ms; }
   
   /* Glassmorphism enhancement */
   @supports (backdrop-filter: blur(10px)) {
@@ -256,6 +275,58 @@
     }
   }
   
+  /* Image hover zoom with overlay */
+  .image-container {
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .image-container img {
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  
+  .image-container:hover img {
+    transform: scale(1.08);
+  }
+  
+  .image-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent 60%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    align-items: flex-end;
+    padding: 1rem;
+    pointer-events: none;
+  }
+  
+  .image-container:hover .image-overlay {
+    opacity: 1;
+  }
+  
+  /* Reaction button bounce */
+  @keyframes reactionBounce {
+    0%, 100% { transform: scale(1); }
+    25% { transform: scale(1.3); }
+    50% { transform: scale(0.9); }
+    75% { transform: scale(1.1); }
+  }
+  
+  .reaction-bounce {
+    animation: reactionBounce 0.5s ease;
+  }
+  
+  /* Number count animation */
+  @keyframes countUp {
+    from { transform: translateY(10px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  .count-animate {
+    animation: countUp 0.3s ease;
+  }
+  
   /* FAB pulse animation */
   @keyframes fabPulse {
     0%, 100% { box-shadow: 0 10px 25px -5px rgba(15, 92, 78, 0.3), 0 8px 10px -6px rgba(15, 92, 78, 0.2); }
@@ -263,6 +334,33 @@
   }
   #fab-upload {
     animation: fabPulse 3s ease-in-out infinite;
+  }
+  
+  /* Skeleton shimmer effect */
+  @keyframes shimmer {
+    0% { background-position: -1000px 0; }
+    100% { background-position: 1000px 0; }
+  }
+  
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.3) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
+  }
+  
+  .dark .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0) 0%,
+      rgba(255, 255, 255, 0.05) 50%,
+      rgba(255, 255, 255, 0) 100%
+    );
+    background-size: 1000px 100%;
   }
 </style>
 

@@ -280,12 +280,18 @@ document.addEventListener('DOMContentLoaded', function () {
       'backdrop-blur-md bg-white/80 dark:bg-gray-800/80 ' +
       'border border-white/20 dark:border-gray-700/50">' +
 
-        '<div class="overflow-hidden">' +
+        '<div class="image-container overflow-hidden rounded-t-2xl">' +
           '<img src="' + escapeAttr(image.s3_url) + '" ' +
           'alt="Uploaded by ' + escapeAttr(image.username) + '" ' +
           'loading="lazy" ' +
           'onclick="openLightbox(' + image.id + ', \'' + escapeAttr(image.s3_url) + '\', \'' + escapeAttr(image.username) + '\', ' + image.id + ')" ' +
-          'class="w-full object-cover rounded-t-2xl transition-transform duration-300 hover:scale-105 cursor-pointer" />' +
+          'class="w-full object-cover cursor-pointer" />' +
+          '<div class="image-overlay">' +
+            '<div class="text-white text-sm">' +
+              '<p class="font-semibold">' + escapeHTML(image.username) + '</p>' +
+              '<p class="text-xs opacity-90">👁️ ' + (image.views || 0) + ' views</p>' +
+            '</div>' +
+          '</div>' +
         '</div>' +
 
         '<div class="p-3 space-y-2 backdrop-blur-sm bg-white/60 dark:bg-gray-800/60">' +
@@ -538,6 +544,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
     if (!imageId || !reactionType) return;
 
+    /* Add bounce animation to the button */
+    reactionBtn.classList.add('reaction-bounce');
+    setTimeout(function() {
+      reactionBtn.classList.remove('reaction-bounce');
+    }, 500);
+
     /* Get both buttons for this image */
     var likeBtn = document.querySelector('[data-image-id="' + imageId + '"][data-reaction="like"]');
     var dislikeBtn = document.querySelector('[data-image-id="' + imageId + '"][data-reaction="dislike"]');
@@ -602,15 +614,15 @@ document.addEventListener('DOMContentLoaded', function () {
       .then(function (data) {
         if (!data) return; /* Redirected — nothing to update */
 
-        /* Update the like and dislike count badges on the card (Requirement 8.9) */
+        /* Update the like and dislike count badges on the card with animation (Requirement 8.9) */
         var likesEl = document.getElementById('likes-count-' + imageId);
         var dislikesEl = document.getElementById('dislikes-count-' + imageId);
 
-        if (likesEl) {
-          likesEl.textContent = data.likes;
+        if (likesEl && data.likes !== undefined) {
+          animateCountChange(likesEl, data.likes);
         }
-        if (dislikesEl) {
-          dislikesEl.textContent = data.dislikes;
+        if (dislikesEl && data.dislikes !== undefined) {
+          animateCountChange(dislikesEl, data.dislikes);
         }
       })
       .catch(function (err) {
@@ -637,6 +649,24 @@ document.addEventListener('DOMContentLoaded', function () {
         }
       });
   });
+
+  /**
+   * Animate count change with smooth transition
+   * @param {HTMLElement} element - The count element to animate
+   * @param {number} newValue - The new count value
+   */
+  function animateCountChange(element, newValue) {
+    /* Add animation class */
+    element.classList.add('count-animate');
+    
+    /* Update the text content */
+    element.textContent = newValue;
+    
+    /* Remove animation class after animation completes */
+    setTimeout(function() {
+      element.classList.remove('count-animate');
+    }, 300);
+  }
 
   /* ====================================================================
      MODULE 4 — Delete
