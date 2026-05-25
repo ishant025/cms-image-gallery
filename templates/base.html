@@ -412,13 +412,13 @@
   {% endif %}
 
   <!-- ================================================================
-       Floating Action Button (Upload) - Hidden on Mobile
+       Floating Action Button (Upload) - Visible on all screens
        ================================================================ -->
   {% if current_user.is_authenticated %}
     <a href="{{ url_for('upload') }}"
        id="fab-upload"
-       class="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full shadow-lg
-              hidden md:flex items-center justify-center transition-all duration-300
+       class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-lg
+              flex items-center justify-center transition-all duration-300
               hover:scale-110 hover:shadow-2xl active:scale-95
               backdrop-blur-md bg-gradient-to-br from-teal-500/90 to-teal-600/90
               border border-white/20"

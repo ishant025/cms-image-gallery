@@ -10,79 +10,11 @@
 
 {% block content %}
 
-  <!-- Search bar and Preferences Controls -->
-  <div class="mb-8 space-y-4">
-    <!-- Basic Search bar -->
-    <div class="flex gap-2 max-w-xl mx-auto">
-      <input
-        type="text"
-        id="search-input"
-        maxlength="255"
-        placeholder="🔍 Search by tag…"
-        autocomplete="off"
-        class="flex-1 px-4 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
-               bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-               placeholder-gray-400 dark:placeholder-gray-500
-               focus:outline-none transition-colors duration-200 text-sm"
-        onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
-        onblur="this.style.boxShadow=''; this.style.borderColor='';"
-      />
-      <button
-        id="search-btn"
-        type="button"
-        class="px-5 py-2.5 rounded-xl text-white font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
-        style="background: linear-gradient(135deg, #0f5c4e, #0f8c68);"
-        onmouseover="this.style.background='linear-gradient(135deg, #0a4038, #0f5c4e)';"
-        onmouseout="this.style.background='linear-gradient(135deg, #0f5c4e, #0f8c68)';">
-        Search
-      </button>
-    </div>
-
-    <!-- Preferences Controls -->
-    <div class="flex flex-wrap gap-3 justify-center items-center">
-      <!-- Grid Size Selector -->
-      <div class="flex items-center gap-2">
-        <label for="grid-size-selector" class="text-sm font-medium text-gray-700 dark:text-gray-300">
-          📐 Grid:
-        </label>
-        <select
-          id="grid-size-selector"
-          class="px-3 py-1.5 rounded-lg border border-stone-300 dark:border-gray-600
-                 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                 text-sm focus:outline-none transition-colors duration-200 cursor-pointer"
-          onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
-          onblur="this.style.boxShadow=''; this.style.borderColor='';">
-          <option value="2">2 columns</option>
-          <option value="3">3 columns</option>
-          <option value="4" selected>4 columns</option>
-          <option value="5">5 columns</option>
-        </select>
-      </div>
-
-      <!-- View Mode Selector -->
-      <div class="flex items-center gap-2">
-        <label for="view-mode-selector" class="text-sm font-medium text-gray-700 dark:text-gray-300">
-          👁️ View:
-        </label>
-        <select
-          id="view-mode-selector"
-          class="px-3 py-1.5 rounded-lg border border-stone-300 dark:border-gray-600
-                 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
-                 text-sm focus:outline-none transition-colors duration-200 cursor-pointer"
-          onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
-          onblur="this.style.boxShadow=''; this.style.borderColor='';">
-          <option value="grid" selected>Grid View</option>
-          <option value="list">List View</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
   <!-- No results message -->
   <div id="no-results" class="hidden text-center py-16 text-gray-500 dark:text-gray-400">
     <p class="text-4xl mb-3">🔍</p>
     <p class="text-lg font-semibold">No results found</p>
-    <p class="text-sm mt-1">Try a different tag or clear the search bar.</p>
+    <p class="text-sm mt-1">Try a different tag.</p>
   </div>
 
   <!-- Skeleton loading state -->
@@ -465,9 +397,6 @@
   window.currentUserId = {% if current_user.is_authenticated %}{{ current_user.id }}{% else %}null{% endif %};
 </script>
 
-<!-- Load Preferences Module (must be first) -->
-<script src="{{ url_for('static', filename='js/preferences.js') }}"></script>
-
 <!-- Core Gallery Scripts -->
 <script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
 
@@ -483,7 +412,6 @@
    * Premium UX Enhancements - Module Initialization
    * 
    * This script wires together all JavaScript modules for the premium UX enhancements:
-   * - Preferences (grid size, view mode)
    * - Progressive Loading (blur-up effect)
    * - Bulk Operations (multi-select, bulk delete/download)
    * - Image Viewer (zoom, pan, rotate in lightbox)
@@ -495,75 +423,20 @@
   document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 Initializing Premium UX Enhancements...');
     
-    // 1. Initialize Preferences (must be first)
-    initializePreferences();
-    
-    // 2. Initialize Progressive Loading
+    // 1. Initialize Progressive Loading
     initializeProgressiveLoading();
     
-    // 3. Initialize Bulk Operations (authenticated users only)
+    // 2. Initialize Bulk Operations (authenticated users only)
     initializeBulkOperations();
     
-    // 4. Initialize Mobile Gestures
+    // 3. Initialize Mobile Gestures
     initializeMobileGestures();
     
-    // 5. Image Viewer is auto-initialized when lightbox opens (via image-viewer.js)
-    // 6. Undo Delete is auto-initialized (via undo-delete.js)
+    // 4. Image Viewer is auto-initialized when lightbox opens (via image-viewer.js)
+    // 5. Undo Delete is auto-initialized (via undo-delete.js)
     
     console.log('✅ Premium UX Enhancements initialized successfully');
-  });
-
-  /**
-   * Initialize user preferences and apply them to the gallery
-   * Requirements: 6.1, 6.2, 6.3, 6.4, 6.9
-   */
-  function initializePreferences() {
-    console.log('📐 Initializing Preferences...');
-    
-    try {
-      // Apply saved preferences on page load
-      const preferences = Preferences.applyPreferences();
-      
-      // Get UI elements
-      const gridSizeSelector = document.getElementById('grid-size-selector');
-      const viewModeSelector = document.getElementById('view-mode-selector');
-      const galleryGridContainer = document.getElementById('gallery-grid-container');
-      const skeletonGridContainer = document.getElementById('skeleton-grid-container');
-
-      // Apply grid size preference
-      if (gridSizeSelector && galleryGridContainer) {
-        // Set selector to saved preference
-        gridSizeSelector.value = preferences.gridSize;
-        
-        // Apply grid size class
-        applyGridSize(preferences.gridSize);
-        
-        // Listen for changes
-        gridSizeSelector.addEventListener('change', function() {
-          const newGridSize = parseInt(this.value);
-          Preferences.setGridSize(newGridSize);
-          applyGridSize(newGridSize);
-        });
-      }
-
-      // Apply view mode preference
-      if (viewModeSelector) {
-        // Set selector to saved preference
-        viewModeSelector.value = preferences.viewMode;
-        
-        // Listen for changes
-        viewModeSelector.addEventListener('change', function() {
-          const newViewMode = this.value;
-          Preferences.setViewMode(newViewMode);
-          applyViewMode(newViewMode);
-        });
-      }
-
-      console.log('✅ Preferences initialized:', preferences);
-    } catch (error) {
-      console.error('❌ Error initializing preferences:', error);
-    }
-  }.addEventListener('change', function() {
+  });.addEventListener('change', function() {
           const newViewMode = this.value;
           Preferences.setViewMode(newViewMode);
           applyViewMode(newViewMode);
