@@ -412,26 +412,8 @@
   {% endif %}
 
   <!-- ================================================================
-       Floating Action Button (Upload) - Visible on all screens
+       Theme toggle click handler
        ================================================================ -->
-  {% if current_user.is_authenticated %}
-    <a href="{{ url_for('upload') }}"
-       id="fab-upload"
-       class="fixed right-6 z-50 w-14 h-14 rounded-full shadow-lg
-              flex items-center justify-center transition-all duration-300
-              hover:scale-110 hover:shadow-2xl active:scale-95
-              backdrop-blur-md bg-gradient-to-br from-teal-500/90 to-teal-600/90
-              border border-white/20
-              bottom-24 md:bottom-6"
-       style="background: linear-gradient(135deg, rgba(15, 92, 78, 0.95), rgba(15, 140, 104, 0.95));"
-       title="Upload Image">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-      </svg>
-    </a>
-  {% endif %}
-
-  <!-- Theme toggle click handler -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
       // Theme toggle
@@ -723,11 +705,6 @@
 
     .toast-notification.toast-hiding {
       animation: toast-slide-out 0.3s ease-in forwards;
-    }
-
-    /* Adjust FAB position when toasts are present */
-    #toast-container:not(:empty) ~ #fab-upload {
-      bottom: calc(6rem + 80px);
     }
 
     /* Mobile Bottom Navigation Styles */
