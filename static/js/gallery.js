@@ -286,12 +286,6 @@ document.addEventListener('DOMContentLoaded', function () {
           'loading="lazy" ' +
           'onclick="openLightbox(' + image.id + ', \'' + escapeAttr(image.s3_url) + '\', \'' + escapeAttr(image.username) + '\', ' + image.id + ')" ' +
           'class="w-full object-cover cursor-pointer" />' +
-          '<div class="image-overlay">' +
-            '<div class="text-white text-sm">' +
-              '<p class="font-semibold">' + escapeHTML(image.username) + '</p>' +
-              '<p class="text-xs opacity-90">👁️ ' + (image.views || 0) + ' views</p>' +
-            '</div>' +
-          '</div>' +
         '</div>' +
 
         '<div class="p-3 space-y-2 backdrop-blur-sm bg-white/60 dark:bg-gray-800/60">' +

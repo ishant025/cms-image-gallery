@@ -72,7 +72,7 @@
                     backdrop-blur-md bg-white/80 dark:bg-gray-800/80
                     border border-white/20 dark:border-gray-700/50">
 
-          <!-- Image with hover overlay -->
+          <!-- Image with hover zoom -->
           <div class="image-container overflow-hidden rounded-t-2xl">
             <img
               src="{{ image.s3_url }}"
@@ -81,12 +81,6 @@
               onclick="openLightbox({{ image.id }}, '{{ image.s3_url }}', '{{ image.username }}', {{ image.id }})"
               class="w-full object-cover cursor-pointer"
             />
-            <div class="image-overlay">
-              <div class="text-white text-sm">
-                <p class="font-semibold">{{ image.username }}</p>
-                <p class="text-xs opacity-90">👁️ {{ image.views }} views</p>
-              </div>
-            </div>
           </div>
 
           <!-- Card body with glassmorphism -->
@@ -242,7 +236,7 @@
     }
   }
   
-  /* Image hover zoom with overlay */
+  /* Image hover zoom */
   .image-container {
     position: relative;
     overflow: hidden;
@@ -254,22 +248,6 @@
   
   .image-container:hover img {
     transform: scale(1.08);
-  }
-  
-  .image-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent 60%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    display: flex;
-    align-items: flex-end;
-    padding: 1rem;
-    pointer-events: none;
-  }
-  
-  .image-container:hover .image-overlay {
-    opacity: 1;
   }
   
   /* Reaction button bounce */
