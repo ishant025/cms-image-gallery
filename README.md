@@ -18,7 +18,7 @@ A modern, cloud-powered Image & GIF Gallery — built with Flask, AWS S3, Neon P
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-06B6D4?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Render](https://img.shields.io/badge/Deployed_on-Render-46E3B7?style=flat&logo=render&logoColor=white)](https://content-manch.onrender.com)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat)](#license)
-[![Tests](https://img.shields.io/badge/Tests-59%20passed-success?style=flat)](#testing)
+[![Tests](https://img.shields.io/badge/Tests-174%20passed-success?style=flat)](#testing)
 
 </div>
 
@@ -26,16 +26,27 @@ A modern, cloud-powered Image & GIF Gallery — built with Flask, AWS S3, Neon P
 
 ## ✨ Features
 
+### Core Features
 - 🔐 **Secure Authentication** — Sign up, log in, and log out with hashed passwords (Werkzeug + Flask-Login)
 - ☁️ **Cloud Storage** — Images uploaded directly to AWS S3 with public-read URLs
 - 🏷️ **Tag System** — Add up to 20 tags per image for easy discovery
-- 🔍 **Live Search** — Dynamic, case-insensitive partial tag search without page reloads
+- 🔍 **Advanced Search** — Multi-tag search with AND logic, date range filters, uploader filtering, and minimum likes threshold
 - 👍 **Like / Dislike** — One reaction per user per image with smart toggle logic
 - 🗑️ **Owner-Only Deletion** — Only the uploader can delete an image, with a confirmation modal
 - 👑 **Admin Role** — Admin can delete any user's image for moderation
 - 🌓 **Dark / Light Mode** — Persistent theme toggle via `localStorage`
 - 📱 **Fully Responsive** — Pinterest-style masonry grid that adapts from mobile to desktop
 - ⚡ **Fast** — Search returns results in under 2 seconds for up to 10,000 records
+
+### Premium UX Enhancements
+- 🖼️ **Advanced Image Viewer** — Full-screen lightbox with zoom, pan, keyboard navigation, and image metadata
+- 📦 **Bulk Operations** — Select multiple images for batch delete or download (up to 50 images)
+- 🎨 **Live Image Filters** — Real-time preview of grayscale, sepia, brightness, contrast, and saturation adjustments
+- ⚡ **Progressive Loading** — Blur-up effect with thumbnail-to-full-image transitions for faster perceived load times
+- 🔍 **Smart Search** — Advanced filtering by tags, date range, uploader, and popularity with multiple sort options
+- ⚙️ **User Preferences** — Persistent settings for grid density, sort order, and filter presets
+- ↩️ **Undo Delete** — 30-second grace period to restore accidentally deleted images
+- 📱 **Mobile Experience** — Touch gestures (swipe, pinch-to-zoom), bottom navigation, and optimized mobile UI
 
 ---
 
@@ -196,16 +207,23 @@ Allow public read for uploaded images:
 
 ## 🧪 Testing
 
-Run the full test suite (59 tests covering services, routes, and edge cases):
+Run the full test suite (174 tests covering services, routes, and edge cases):
 
 ```bash
-python3 -m pytest tests/ -v
+python3 -m pytest -v
 ```
 
 Run with coverage:
 ```bash
-python3 -m pytest tests/ --cov=. --cov-report=html
+python3 -m pytest --cov=. --cov-report=html
 ```
+
+### Test Coverage
+- **174 passing tests** with 100% pass rate
+- **Unit tests**: All backend services (bulk operations, filters, image processing, search, undo queue)
+- **Integration tests**: API routes, template integration, progressive loading
+- **Property-based tests**: Tag validation, upload handling, like/dislike logic
+- **End-to-end tests**: Complete user workflows and feature interactions
 
 ---
 
@@ -241,31 +259,54 @@ Other supported platforms: **Railway**, **Fly.io**, **PythonAnywhere**, **AWS El
 
 ```
 cms-image-gallery/
-├── app.py                 # Flask app factory + entry point
-├── models.py              # SQLAlchemy models (User, Image, Tag, Likes)
-├── routes.py              # All HTTP routes
-├── auth_service.py        # Registration + login
-├── upload_service.py      # File validation + S3 upload + tag parsing
-├── s3_service.py          # Boto3 S3 integration
-├── search_service.py      # Tag-based search
-├── like_service.py        # Like/dislike toggle logic
-├── delete_service.py      # Authorized deletion with cascade
-├── templates/             # Jinja2 HTML templates
-│   ├── base.html
-│   ├── index.html         # Gallery homepage
+├── app.py                      # Flask app factory + entry point
+├── models.py                   # SQLAlchemy models (User, Image, Tag, Likes)
+├── routes.py                   # All HTTP routes + API endpoints
+├── auth_service.py             # Registration + login
+├── upload_service.py           # File validation + S3 upload + tag parsing
+├── s3_service.py               # Boto3 S3 integration
+├── search_service.py           # Tag-based search + query builder
+├── like_service.py             # Like/dislike toggle logic
+├── delete_service.py           # Authorized deletion with cascade
+├── bulk_service.py             # Bulk delete and download operations
+├── filter_service.py           # Real-time image filter processing
+├── image_service.py            # Thumbnail generation and upload
+├── query_builder.py            # Advanced search query construction
+├── undo_queue.py               # Undo delete queue management
+├── templates/                  # Jinja2 HTML templates
+│   ├── base.html               # Base template with mobile navigation
+│   ├── index.html              # Gallery homepage with all features
 │   ├── login.html
 │   ├── register.html
 │   ├── upload.html
 │   └── error.html
-├── static/                # Static assets
-│   ├── js/gallery.js      # Frontend JS (search, reactions, delete)
+├── static/                     # Static assets
+│   ├── js/
+│   │   ├── gallery.js          # Core gallery functionality
+│   │   ├── advanced-viewer.js  # Lightbox image viewer
+│   │   ├── bulk-operations.js  # Multi-select and bulk actions
+│   │   ├── filter-preview.js   # Live image filter preview
+│   │   ├── progressive-loading.js  # Blur-up image loading
+│   │   ├── smart-search.js     # Advanced search interface
+│   │   ├── user-preferences.js # Settings persistence
+│   │   ├── undo-delete.js      # Undo functionality
+│   │   └── mobile-gestures.js  # Touch gesture handling
+│   ├── css/
+│   │   ├── premium-ux.css      # Premium feature styles
+│   │   └── mobile-responsive.css  # Mobile-optimized styles
 │   └── logo.png
-├── tests/                 # pytest test suite
-│   ├── test_like.py       # 11 tests
-│   ├── test_search.py     # 17 tests
-│   └── test_upload.py     # 31 tests
-├── requirements.txt       # Python dependencies (pinned)
-├── Procfile               # Production start command
+├── tests/                      # pytest test suite (174 tests)
+│   ├── test_like.py            # Like/dislike tests
+│   ├── test_search.py          # Search and query builder tests
+│   ├── test_upload.py          # Upload validation tests
+│   ├── test_bulk_service.py    # Bulk operations tests
+│   ├── test_filter_service.py  # Image filter tests
+│   ├── test_image_service.py   # Thumbnail generation tests
+│   ├── test_undo_queue.py      # Undo queue tests
+│   ├── test_query_builder.py   # Advanced search tests
+│   └── test_progressive_loading*.py  # Progressive loading tests
+├── requirements.txt            # Python dependencies (pinned)
+├── Procfile                    # Production start command
 └── README.md
 ```
 

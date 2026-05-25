@@ -3,6 +3,59 @@
 {% block title %}Upload Image — Content मंच{% endblock %}
 
 {% block content %}
+<style>
+  /* Filter slider styling */
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #0f5c4e;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  
+  input[type="range"]::-webkit-slider-thumb:hover {
+    background: #0a4038;
+    transform: scale(1.1);
+  }
+  
+  input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #0f5c4e;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+  
+  input[type="range"]::-moz-range-thumb:hover {
+    background: #0a4038;
+    transform: scale(1.1);
+  }
+  
+  /* Canvas styling */
+  #filter-canvas {
+    max-width: 100%;
+    height: auto;
+    object-fit: contain;
+  }
+  
+  /* Active filter button styling */
+  .filter-toggle-btn.active {
+    background: #0f5c4e !important;
+    color: white !important;
+    border-color: #0f5c4e !important;
+  }
+</style>
+
 <div class="py-10 px-4 sm:px-6 lg:px-8">
   <div class="max-w-xl mx-auto">
 
@@ -53,6 +106,7 @@
               <div id="image-preview-wrapper" class="hidden w-full p-4 flex flex-col items-center pointer-events-auto">
                 <img id="image-preview" src="#" alt="Preview"
                      class="max-h-56 max-w-full rounded-lg object-contain shadow-md" />
+                <canvas id="filter-canvas" class="hidden max-h-56 max-w-full rounded-lg shadow-md"></canvas>
                 <p id="preview-file-name" class="mt-3 text-xs font-medium text-gray-600 dark:text-gray-400 truncate max-w-xs"></p>
                 <button type="button" id="clear-file-btn"
                         class="mt-2 text-xs underline focus:outline-none transition-colors pointer-events-auto"
@@ -67,6 +121,58 @@
                      accept="image/jpeg,image/png,image/gif"
                      class="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                      aria-label="Choose an image file" />
+            </div>
+          </div>
+
+          <!-- Filter Controls -->
+          <div id="filter-controls" class="hidden mb-6">
+            <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-3">
+              Image Filters <span class="font-normal text-gray-400 dark:text-gray-500">(optional)</span>
+            </label>
+            
+            <div class="bg-stone-50 dark:bg-gray-700/40 rounded-xl p-4 border border-stone-200 dark:border-gray-600">
+              <!-- Filter Buttons -->
+              <div class="flex flex-wrap gap-2 mb-4">
+                <button type="button" id="grayscale-btn" class="filter-toggle-btn px-3 py-1.5 text-xs rounded-lg font-medium transition-all duration-200 border border-stone-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-stone-100 dark:hover:bg-gray-600">
+                  Grayscale
+                </button>
+                <button type="button" id="sepia-btn" class="filter-toggle-btn px-3 py-1.5 text-xs rounded-lg font-medium transition-all duration-200 border border-stone-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-stone-100 dark:hover:bg-gray-600">
+                  Sepia
+                </button>
+                <button type="button" id="reset-filters-btn" class="px-3 py-1.5 text-xs rounded-lg font-medium transition-all duration-200 border border-stone-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-stone-100 dark:hover:bg-gray-600">
+                  Reset All
+                </button>
+              </div>
+              
+              <!-- Brightness Slider -->
+              <div class="mb-3">
+                <div class="flex justify-between items-center mb-1">
+                  <label for="brightness-slider" class="text-xs font-medium text-gray-600 dark:text-gray-400">Brightness</label>
+                  <span id="brightness-value" class="text-xs font-semibold text-gray-700 dark:text-gray-300">0</span>
+                </div>
+                <input type="range" id="brightness-slider" min="-50" max="50" value="0" step="1"
+                       class="w-full h-2 rounded-lg appearance-none cursor-pointer bg-stone-200 dark:bg-gray-600">
+              </div>
+              
+              <!-- Contrast Slider -->
+              <div class="mb-3">
+                <div class="flex justify-between items-center mb-1">
+                  <label for="contrast-slider" class="text-xs font-medium text-gray-600 dark:text-gray-400">Contrast</label>
+                  <span id="contrast-value" class="text-xs font-semibold text-gray-700 dark:text-gray-300">0</span>
+                </div>
+                <input type="range" id="contrast-slider" min="-50" max="50" value="0" step="1"
+                       class="w-full h-2 rounded-lg appearance-none cursor-pointer bg-stone-200 dark:bg-gray-600">
+              </div>
+              
+              <!-- Saturation Slider -->
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <label for="saturation-slider" class="text-xs font-medium text-gray-600 dark:text-gray-400">Saturation</label>
+                  <span id="saturation-value" class="text-xs font-semibold text-gray-700 dark:text-gray-300">0</span>
+                </div>
+                <input type="range" id="saturation-slider" min="-100" max="100" value="0" step="1"
+                       class="w-full h-2 rounded-lg appearance-none cursor-pointer bg-stone-200 dark:bg-gray-600">
+              </div>
             </div>
           </div>
 
@@ -147,6 +253,7 @@
   </div>
 </div>
 
+<script src="{{ url_for('static', filename='js/filter-preview.js') }}"></script>
 <script>
 (function () {
   "use strict";
@@ -155,6 +262,7 @@
   const placeholder = document.getElementById("drop-zone-placeholder");
   const previewWrapper = document.getElementById("image-preview-wrapper");
   const previewImg = document.getElementById("image-preview");
+  const filterCanvas = document.getElementById("filter-canvas");
   const previewFileName = document.getElementById("preview-file-name");
   const fileNameDisplay = document.getElementById("file-name-display");
   const clearBtn = document.getElementById("clear-file-btn");
@@ -164,9 +272,23 @@
   const tagsInput = document.getElementById("tags-input");
   const useAllTagsBtn = document.getElementById("use-all-tags-btn");
   const aiTagsDataInput = document.getElementById("ai-tags-data");
+  
+  // Filter controls
+  const filterControls = document.getElementById("filter-controls");
+  const grayscaleBtn = document.getElementById("grayscale-btn");
+  const sepiaBtn = document.getElementById("sepia-btn");
+  const resetFiltersBtn = document.getElementById("reset-filters-btn");
+  const brightnessSlider = document.getElementById("brightness-slider");
+  const brightnessValue = document.getElementById("brightness-value");
+  const contrastSlider = document.getElementById("contrast-slider");
+  const contrastValue = document.getElementById("contrast-value");
+  const saturationSlider = document.getElementById("saturation-slider");
+  const saturationValue = document.getElementById("saturation-value");
 
   let currentAITags = [];
   let aiTagsMap = {}; // Maps tag name to confidence score
+  let filterPreview = null; // FilterPreview instance
+  let currentFile = null; // Store current file for filter processing
 
   function onDragOver(e) {
     e.preventDefault();
@@ -201,6 +323,7 @@
   });
 
   function handleFileSelected(file) {
+    currentFile = file;
     fileNameDisplay.textContent = file.name;
     if (file.type.startsWith("image/")) {
       const reader = new FileReader();
@@ -212,6 +335,9 @@
         // Disable file input when preview is showing
         fileInput.style.pointerEvents = "none";
         
+        // Initialize filter preview
+        initializeFilterPreview(file);
+        
         // Get AI tag suggestions
         getAITagSuggestions(e.target.result);
       };
@@ -220,6 +346,141 @@
       placeholder.classList.remove("hidden");
       previewWrapper.classList.add("hidden");
     }
+  }
+  
+  /**
+   * Initialize filter preview with the selected image
+   */
+  function initializeFilterPreview(file) {
+    // Clean up existing filter preview
+    if (filterPreview) {
+      filterPreview.destroy();
+      filterPreview = null;
+    }
+    
+    // Show filter controls
+    filterControls.classList.remove("hidden");
+    
+    // Hide regular preview image, show canvas
+    previewImg.classList.add("hidden");
+    filterCanvas.classList.remove("hidden");
+    
+    // Create new filter preview instance
+    try {
+      filterPreview = new FilterPreview(filterCanvas, file);
+      
+      // Listen for filter preview events
+      filterCanvas.addEventListener('filterpreview:loaded', function() {
+        console.log('Filter preview loaded');
+      });
+      
+      filterCanvas.addEventListener('filterpreview:update', function(e) {
+        console.log('Filter updated in', e.detail.duration.toFixed(2), 'ms');
+      });
+      
+      filterCanvas.addEventListener('filterpreview:error', function(e) {
+        console.error('Filter preview error:', e.detail.message);
+        // Fall back to regular preview
+        previewImg.classList.remove("hidden");
+        filterCanvas.classList.add("hidden");
+        filterControls.classList.add("hidden");
+      });
+      
+      // Set up filter controls
+      setupFilterControls();
+      
+    } catch (error) {
+      console.error('Failed to initialize filter preview:', error);
+      // Fall back to regular preview
+      previewImg.classList.remove("hidden");
+      filterCanvas.classList.add("hidden");
+      filterControls.classList.add("hidden");
+    }
+  }
+  
+  /**
+   * Set up filter control event listeners
+   */
+  function setupFilterControls() {
+    // Grayscale toggle
+    grayscaleBtn.onclick = function() {
+      if (this.classList.contains('active')) {
+        filterPreview.removeGrayscale();
+        this.classList.remove('active');
+        this.style.background = '';
+        this.style.color = '';
+        this.style.borderColor = '';
+      } else {
+        filterPreview.applyGrayscale();
+        this.classList.add('active');
+        this.style.background = '#0f5c4e';
+        this.style.color = 'white';
+        this.style.borderColor = '#0f5c4e';
+      }
+    };
+    
+    // Sepia toggle
+    sepiaBtn.onclick = function() {
+      if (this.classList.contains('active')) {
+        filterPreview.removeSepia();
+        this.classList.remove('active');
+        this.style.background = '';
+        this.style.color = '';
+        this.style.borderColor = '';
+      } else {
+        filterPreview.applySepia();
+        this.classList.add('active');
+        this.style.background = '#0f5c4e';
+        this.style.color = 'white';
+        this.style.borderColor = '#0f5c4e';
+      }
+    };
+    
+    // Reset filters
+    resetFiltersBtn.onclick = function() {
+      filterPreview.reset();
+      
+      // Reset UI
+      grayscaleBtn.classList.remove('active');
+      grayscaleBtn.style.background = '';
+      grayscaleBtn.style.color = '';
+      grayscaleBtn.style.borderColor = '';
+      
+      sepiaBtn.classList.remove('active');
+      sepiaBtn.style.background = '';
+      sepiaBtn.style.color = '';
+      sepiaBtn.style.borderColor = '';
+      
+      brightnessSlider.value = 0;
+      brightnessValue.textContent = '0';
+      
+      contrastSlider.value = 0;
+      contrastValue.textContent = '0';
+      
+      saturationSlider.value = 0;
+      saturationValue.textContent = '0';
+    };
+    
+    // Brightness slider
+    brightnessSlider.oninput = function() {
+      const value = parseInt(this.value);
+      brightnessValue.textContent = value > 0 ? '+' + value : value;
+      filterPreview.adjustBrightness(value);
+    };
+    
+    // Contrast slider
+    contrastSlider.oninput = function() {
+      const value = parseInt(this.value);
+      contrastValue.textContent = value > 0 ? '+' + value : value;
+      filterPreview.adjustContrast(value);
+    };
+    
+    // Saturation slider
+    saturationSlider.oninput = function() {
+      const value = parseInt(this.value);
+      saturationValue.textContent = value > 0 ? '+' + value : value;
+      filterPreview.adjustSaturation(value);
+    };
   }
 
   function getAITagSuggestions(imageDataUrl) {
@@ -340,12 +601,26 @@
   clearBtn.addEventListener("click", function (e) {
     e.preventDefault();
     e.stopPropagation();
+    
+    // Clean up filter preview
+    if (filterPreview) {
+      filterPreview.destroy();
+      filterPreview = null;
+    }
+    
     fileInput.value = "";
+    currentFile = null;
     previewImg.src = "#";
     previewFileName.textContent = "";
     fileNameDisplay.textContent = "No file chosen";
     previewWrapper.classList.add("hidden");
     placeholder.classList.remove("hidden");
+    
+    // Hide filter controls and reset canvas
+    filterControls.classList.add("hidden");
+    previewImg.classList.remove("hidden");
+    filterCanvas.classList.add("hidden");
+    
     // Re-enable file input
     fileInput.style.pointerEvents = "auto";
     // Hide AI suggestions
@@ -366,7 +641,60 @@
   uploadForm.addEventListener("submit", function(e) {
     e.preventDefault();
     
-    const formData = new FormData(uploadForm);
+    // Prepare form data
+    const formData = new FormData();
+    
+    // Handle filtered image if filters are applied
+    if (filterPreview && filterPreview.hasActiveFilters()) {
+      // Get filtered image as blob
+      filterPreview.getFilteredBlob().then(function(blob) {
+        // Create a new file from the blob with the original filename
+        const filteredFile = new File([blob], currentFile.name, { type: currentFile.type });
+        formData.append('file', filteredFile);
+        
+        // Add tags
+        const tagsValue = tagsInput.value;
+        if (tagsValue) {
+          formData.append('tags', tagsValue);
+        }
+        
+        // Add AI tags data
+        const aiTagsData = aiTagsDataInput.value;
+        if (aiTagsData) {
+          formData.append('ai_tags_data', aiTagsData);
+        }
+        
+        // Submit the form
+        submitFormData(formData);
+      }).catch(function(error) {
+        console.error('Failed to get filtered image:', error);
+        alert('Failed to apply filters. Please try again.');
+      });
+    } else {
+      // No filters applied, use original form data
+      const tagsValue = tagsInput.value;
+      if (tagsValue) {
+        formData.append('tags', tagsValue);
+      }
+      
+      const aiTagsData = aiTagsDataInput.value;
+      if (aiTagsData) {
+        formData.append('ai_tags_data', aiTagsData);
+      }
+      
+      // Add the original file
+      if (fileInput.files && fileInput.files.length > 0) {
+        formData.append('file', fileInput.files[0]);
+      }
+      
+      submitFormData(formData);
+    }
+  });
+  
+  /**
+   * Submit form data with progress tracking
+   */
+  function submitFormData(formData) {
     const xhr = new XMLHttpRequest();
     
     // Show progress bar
@@ -418,7 +746,7 @@
     
     xhr.open("POST", uploadForm.action);
     xhr.send(formData);
-  });
+  }
 })();
 </script>
 {% endblock %}

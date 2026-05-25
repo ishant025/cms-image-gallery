@@ -1,10 +1,18 @@
 {% extends "base.html" %}
 {% block title %}Content मंच — Home{% endblock %}
 
+{% block head %}
+<!-- Progressive Loading CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/progressive-loading.css') }}">
+<!-- Bulk Operations CSS -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/bulk-operations.css') }}">
+{% endblock %}
+
 {% block content %}
 
-  <!-- Search bar -->
-  <div class="mb-8">
+  <!-- Search bar and Preferences Controls -->
+  <div class="mb-8 space-y-4">
+    <!-- Basic Search bar -->
     <div class="flex gap-2 max-w-xl mx-auto">
       <input
         type="text"
@@ -28,6 +36,206 @@
         onmouseout="this.style.background='linear-gradient(135deg, #0f5c4e, #0f8c68)';">
         Search
       </button>
+      <button
+        id="toggle-advanced-search"
+        type="button"
+        class="px-4 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
+               bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300
+               font-semibold text-sm transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+        title="Toggle advanced search">
+        🔍+
+      </button>
+    </div>
+
+    <!-- Advanced Search Panel -->
+    <div id="advanced-search-panel" class="hidden max-w-4xl mx-auto p-6 rounded-2xl
+                                           backdrop-blur-md bg-white/80 dark:bg-gray-800/80
+                                           border border-white/20 dark:border-gray-700/50 shadow-lg">
+      <h3 class="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">🔍 Advanced Search</h3>
+      
+      <!-- Multi-tag Input -->
+      <div class="mb-4">
+        <label for="smart-tag-input" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Tags (multiple)
+        </label>
+        <div class="relative">
+          <input
+            type="text"
+            id="smart-tag-input"
+            placeholder="Type to search tags..."
+            autocomplete="off"
+            class="w-full px-4 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
+                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                   placeholder-gray-400 dark:placeholder-gray-500
+                   focus:outline-none transition-colors duration-200 text-sm"
+            onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
+            onblur="this.style.boxShadow=''; this.style.borderColor='';"
+          />
+          <!-- Tag suggestions dropdown -->
+          <div id="tag-suggestions" class="hidden absolute z-10 w-full mt-1 rounded-xl border border-stone-300 dark:border-gray-600
+                                           bg-white dark:bg-gray-800 shadow-lg max-h-48 overflow-y-auto">
+          </div>
+        </div>
+        <!-- Selected tags display -->
+        <div id="selected-tags" class="mt-2 flex flex-wrap gap-2">
+          <span class="text-sm text-gray-400">No tags selected</span>
+        </div>
+      </div>
+
+      <!-- Date Range Filter -->
+      <div class="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="date-start" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            From Date
+          </label>
+          <input
+            type="date"
+            id="date-start"
+            class="w-full px-4 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
+                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                   focus:outline-none transition-colors duration-200 text-sm"
+            onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
+            onblur="this.style.boxShadow=''; this.style.borderColor='';"
+          />
+        </div>
+        <div>
+          <label for="date-end" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            To Date
+          </label>
+          <input
+            type="date"
+            id="date-end"
+            class="w-full px-4 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
+                   bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                   focus:outline-none transition-colors duration-200 text-sm"
+            onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
+            onblur="this.style.boxShadow=''; this.style.borderColor='';"
+          />
+        </div>
+      </div>
+
+      <!-- Uploader Filter -->
+      <div class="mb-4">
+        <label for="uploader-filter" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Uploader
+        </label>
+        <select
+          id="uploader-filter"
+          class="w-full px-4 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
+                 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                 focus:outline-none transition-colors duration-200 text-sm cursor-pointer"
+          onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
+          onblur="this.style.boxShadow=''; this.style.borderColor='';">
+          <option value="">All uploaders</option>
+          <!-- Options will be populated dynamically -->
+        </select>
+      </div>
+
+      <!-- Minimum Likes Filter -->
+      <div class="mb-4">
+        <label for="min-likes" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Minimum Likes: <span id="min-likes-value" class="font-bold text-teal-600 dark:text-teal-400">0</span>
+        </label>
+        <input
+          type="range"
+          id="min-likes"
+          min="0"
+          max="50"
+          value="0"
+          step="1"
+          class="w-full h-2 rounded-lg appearance-none cursor-pointer
+                 bg-gray-200 dark:bg-gray-700"
+          style="accent-color: #0f5c4e;"
+        />
+      </div>
+
+      <!-- Active Filters Display -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Active Filters
+        </label>
+        <div id="active-filters" class="flex flex-wrap gap-2">
+          <span class="text-sm text-gray-400">No active filters</span>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex gap-3 justify-end">
+        <button
+          id="clear-filters-btn"
+          type="button"
+          class="px-5 py-2.5 rounded-xl border border-stone-300 dark:border-gray-600
+                 bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300
+                 font-semibold text-sm transition-all duration-200 hover:bg-gray-50 dark:hover:bg-gray-700">
+          Clear All
+        </button>
+        <button
+          id="smart-search-btn"
+          type="button"
+          class="px-5 py-2.5 rounded-xl text-white font-semibold text-sm transition-all duration-200 shadow-sm hover:shadow-md active:scale-95"
+          style="background: linear-gradient(135deg, #0f5c4e, #0f8c68);"
+          onmouseover="this.style.background='linear-gradient(135deg, #0a4038, #0f5c4e)';"
+          onmouseout="this.style.background='linear-gradient(135deg, #0f5c4e, #0f8c68)';">
+          Search
+        </button>
+      </div>
+    </div>
+
+    <!-- Preferences Controls -->
+    <div class="flex flex-wrap gap-3 justify-center items-center">
+      <!-- Grid Size Selector -->
+      <div class="flex items-center gap-2">
+        <label for="grid-size-selector" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+          📐 Grid:
+        </label>
+        <select
+          id="grid-size-selector"
+          class="px-3 py-1.5 rounded-lg border border-stone-300 dark:border-gray-600
+                 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                 text-sm focus:outline-none transition-colors duration-200 cursor-pointer"
+          onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
+          onblur="this.style.boxShadow=''; this.style.borderColor='';">
+          <option value="2">2 columns</option>
+          <option value="3">3 columns</option>
+          <option value="4" selected>4 columns</option>
+          <option value="5">5 columns</option>
+        </select>
+      </div>
+
+      <!-- Sort Order Selector -->
+      <div class="flex items-center gap-2">
+        <label for="sort-order-selector" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+          🔄 Sort:
+        </label>
+        <select
+          id="sort-order-selector"
+          class="px-3 py-1.5 rounded-lg border border-stone-300 dark:border-gray-600
+                 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                 text-sm focus:outline-none transition-colors duration-200 cursor-pointer"
+          onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
+          onblur="this.style.boxShadow=''; this.style.borderColor='';">
+          <option value="newest" selected>Newest First</option>
+          <option value="most_liked">Most Liked</option>
+          <option value="most_viewed">Most Viewed</option>
+        </select>
+      </div>
+
+      <!-- View Mode Selector -->
+      <div class="flex items-center gap-2">
+        <label for="view-mode-selector" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+          👁️ View:
+        </label>
+        <select
+          id="view-mode-selector"
+          class="px-3 py-1.5 rounded-lg border border-stone-300 dark:border-gray-600
+                 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100
+                 text-sm focus:outline-none transition-colors duration-200 cursor-pointer"
+          onfocus="this.style.boxShadow='0 0 0 2px #0f5c4e40'; this.style.borderColor='#0f5c4e';"
+          onblur="this.style.boxShadow=''; this.style.borderColor='';">
+          <option value="grid" selected>Grid View</option>
+          <option value="list">List View</option>
+        </select>
+      </div>
     </div>
   </div>
 
@@ -40,7 +248,7 @@
 
   <!-- Skeleton loading state -->
   <div id="skeleton-loader" class="hidden">
-    <div class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4">
+    <div id="skeleton-grid-container" class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4">
       {% for i in range(8) %}
         <div class="break-inside-avoid mb-4 rounded-2xl overflow-hidden
                     backdrop-blur-md bg-white/80 dark:bg-gray-800/80
@@ -72,7 +280,7 @@
   <div id="gallery-grid">
 
     {% if images %}
-      <div class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4">
+      <div id="gallery-grid-container" class="columns-1 sm:columns-2 md:columns-3 lg:columns-4 gap-4">
 
         {% for image in images %}
           <div id="image-card-{{ image.id }}"
@@ -81,14 +289,15 @@
                       backdrop-blur-md bg-white/80 dark:bg-gray-800/80
                       border border-white/20 dark:border-gray-700/50">
 
-            <!-- Image with hover zoom -->
+            <!-- Image with hover zoom and progressive loading -->
             <div class="image-container overflow-hidden rounded-t-2xl">
               <img
-                src="{{ image.s3_url }}"
+                src="{{ image.thumbnail_url or image.s3_url }}"
+                data-full-url="{{ image.s3_url }}"
                 alt="Uploaded by {{ image.username }}"
                 loading="lazy"
                 onclick="openLightbox({{ image.id }}, '{{ image.s3_url }}', '{{ image.username }}', {{ image.id }})"
-                class="w-full object-cover cursor-pointer"
+                class="w-full object-cover cursor-pointer progressive-image"
               />
             </div>
 
@@ -340,10 +549,518 @@
     );
     background-size: 1000px 100%;
   }
+
+  /* Grid size variations for preferences */
+  .grid-columns-1 {
+    columns: 1;
+  }
+
+  .grid-columns-2 {
+    columns: 1;
+  }
+  @media (min-width: 640px) {
+    .grid-columns-2 {
+      columns: 2;
+    }
+  }
+
+  .grid-columns-3 {
+    columns: 1;
+  }
+  @media (min-width: 640px) {
+    .grid-columns-3 {
+      columns: 2;
+    }
+  }
+  @media (min-width: 768px) {
+    .grid-columns-3 {
+      columns: 3;
+    }
+  }
+
+  .grid-columns-4 {
+    columns: 1;
+  }
+  @media (min-width: 640px) {
+    .grid-columns-4 {
+      columns: 2;
+    }
+  }
+  @media (min-width: 768px) {
+    .grid-columns-4 {
+      columns: 3;
+    }
+  }
+  @media (min-width: 1024px) {
+    .grid-columns-4 {
+      columns: 4;
+    }
+  }
+
+  .grid-columns-5 {
+    columns: 1;
+  }
+  @media (min-width: 640px) {
+    .grid-columns-5 {
+      columns: 2;
+    }
+  }
+  @media (min-width: 768px) {
+    .grid-columns-5 {
+      columns: 3;
+    }
+  }
+  @media (min-width: 1024px) {
+    .grid-columns-5 {
+      columns: 4;
+    }
+  }
+  @media (min-width: 1280px) {
+    .grid-columns-5 {
+      columns: 5;
+    }
+  }
 </style>
 
 <script>
   window.currentUserId = {% if current_user.is_authenticated %}{{ current_user.id }}{% else %}null{% endif %};
 </script>
+
+<!-- Load Preferences Module (must be first) -->
+<script src="{{ url_for('static', filename='js/preferences.js') }}"></script>
+
+<!-- Core Gallery Scripts -->
 <script src="{{ url_for('static', filename='js/gallery.js') }}"></script>
+
+<!-- Premium UX Enhancement Modules -->
+<script src="{{ url_for('static', filename='js/image-viewer.js') }}"></script>
+<script src="{{ url_for('static', filename='js/bulk-operations.js') }}"></script>
+<script src="{{ url_for('static', filename='js/progressive-loading.js') }}"></script>
+<script src="{{ url_for('static', filename='js/smart-search.js') }}"></script>
+<script src="{{ url_for('static', filename='js/undo-delete.js') }}"></script>
+<script src="{{ url_for('static', filename='js/mobile-gestures.js') }}"></script>
+
+<script>
+  /**
+   * Premium UX Enhancements - Module Initialization
+   * 
+   * This script wires together all JavaScript modules for the premium UX enhancements:
+   * - Preferences (grid size, sort order, view mode)
+   * - Progressive Loading (blur-up effect)
+   * - Bulk Operations (multi-select, bulk delete/download)
+   * - Smart Search (multi-tag search with filters)
+   * - Image Viewer (zoom, pan, rotate in lightbox)
+   * - Undo Delete (toast notifications with undo)
+   * - Mobile Gestures (swipe, pull-to-refresh)
+   */
+  
+  // Initialize all modules when DOM is ready
+  document.addEventListener('DOMContentLoaded', function() {
+    console.log('🚀 Initializing Premium UX Enhancements...');
+    
+    // 1. Initialize Preferences (must be first)
+    initializePreferences();
+    
+    // 2. Initialize Progressive Loading
+    initializeProgressiveLoading();
+    
+    // 3. Initialize Bulk Operations (authenticated users only)
+    initializeBulkOperations();
+    
+    // 4. Initialize Smart Search
+    initializeSmartSearch();
+    
+    // 5. Initialize Mobile Gestures
+    initializeMobileGestures();
+    
+    // 6. Image Viewer is auto-initialized when lightbox opens (via image-viewer.js)
+    // 7. Undo Delete is auto-initialized (via undo-delete.js)
+    
+    console.log('✅ Premium UX Enhancements initialized successfully');
+  });
+
+  /**
+   * Initialize user preferences and apply them to the gallery
+   * Requirements: 6.1, 6.2, 6.3, 6.4, 6.9
+   */
+  function initializePreferences() {
+    console.log('📐 Initializing Preferences...');
+    
+    try {
+      // Apply saved preferences on page load
+      const preferences = Preferences.applyPreferences();
+      
+      // Get UI elements
+      const gridSizeSelector = document.getElementById('grid-size-selector');
+      const sortOrderSelector = document.getElementById('sort-order-selector');
+      const viewModeSelector = document.getElementById('view-mode-selector');
+      const galleryGridContainer = document.getElementById('gallery-grid-container');
+      const skeletonGridContainer = document.getElementById('skeleton-grid-container');
+
+      // Apply grid size preference
+      if (gridSizeSelector && galleryGridContainer) {
+        // Set selector to saved preference
+        gridSizeSelector.value = preferences.gridSize;
+        
+        // Apply grid size class
+        applyGridSize(preferences.gridSize);
+        
+        // Listen for changes
+        gridSizeSelector.addEventListener('change', function() {
+          const newGridSize = parseInt(this.value);
+          Preferences.setGridSize(newGridSize);
+          applyGridSize(newGridSize);
+        });
+      }
+
+      // Apply sort order preference
+      if (sortOrderSelector) {
+        // Set selector to saved preference
+        sortOrderSelector.value = preferences.sortOrder;
+        
+        // Listen for changes
+        sortOrderSelector.addEventListener('change', function() {
+          const newSortOrder = this.value;
+          Preferences.setSortOrder(newSortOrder);
+          
+          // Reload page with sort parameter
+          const url = new URL(window.location.href);
+          url.searchParams.set('sort', newSortOrder);
+          window.location.href = url.toString();
+        });
+      }
+
+      // Apply view mode preference
+      if (viewModeSelector) {
+        // Set selector to saved preference
+        viewModeSelector.value = preferences.viewMode;
+        
+        // Listen for changes
+        viewModeSelector.addEventListener('change', function() {
+          const newViewMode = this.value;
+          Preferences.setViewMode(newViewMode);
+          applyViewMode(newViewMode);
+        });
+        
+        // Apply initial view mode
+        applyViewMode(preferences.viewMode);
+      }
+
+      /**
+       * Apply grid size to gallery container
+       */
+      function applyGridSize(gridSize) {
+        if (!galleryGridContainer) return;
+        
+        // Remove all grid size classes
+        galleryGridContainer.classList.remove('grid-columns-1', 'grid-columns-2', 'grid-columns-3', 'grid-columns-4', 'grid-columns-5');
+        galleryGridContainer.classList.remove('columns-1', 'sm:columns-2', 'md:columns-3', 'lg:columns-4');
+        
+        // Add new grid size class
+        galleryGridContainer.classList.add(`grid-columns-${gridSize}`, 'gap-4');
+        
+        // Also apply to skeleton loader if present
+        if (skeletonGridContainer) {
+          skeletonGridContainer.classList.remove('grid-columns-1', 'grid-columns-2', 'grid-columns-3', 'grid-columns-4', 'grid-columns-5');
+          skeletonGridContainer.classList.remove('columns-1', 'sm:columns-2', 'md:columns-3', 'lg:columns-4');
+          skeletonGridContainer.classList.add(`grid-columns-${gridSize}`, 'gap-4');
+        }
+      }
+
+      /**
+       * Apply view mode to gallery
+       */
+      function applyViewMode(viewMode) {
+        if (!galleryGridContainer) return;
+        
+        if (viewMode === 'list') {
+          // Switch to list view (single column)
+          galleryGridContainer.classList.remove('grid-columns-2', 'grid-columns-3', 'grid-columns-4', 'grid-columns-5');
+          galleryGridContainer.classList.add('grid-columns-1');
+          
+          // Add list-specific styling
+          const imageCards = galleryGridContainer.querySelectorAll('[id^="image-card-"]');
+          imageCards.forEach(card => {
+            card.classList.add('max-w-2xl', 'mx-auto');
+          });
+        } else {
+          // Switch to grid view
+          galleryGridContainer.classList.remove('grid-columns-1');
+          applyGridSize(preferences.gridSize);
+          
+          // Remove list-specific styling
+          const imageCards = galleryGridContainer.querySelectorAll('[id^="image-card-"]');
+          imageCards.forEach(card => {
+            card.classList.remove('max-w-2xl', 'mx-auto');
+          });
+        }
+      }
+      
+      console.log('✅ Preferences initialized');
+    } catch (error) {
+      console.error('❌ Failed to initialize preferences:', error);
+    }
+  }
+  
+  /**
+   * Initialize progressive loading with blur-up effect
+   * Requirements: 4.1, 4.2, 4.3, 4.7
+   */
+  function initializeProgressiveLoading() {
+    console.log('🖼️ Initializing Progressive Loading...');
+    
+    try {
+      const galleryGrid = document.getElementById('gallery-grid');
+      if (!galleryGrid) {
+        console.warn('Gallery grid not found, skipping progressive loading');
+        return;
+      }
+      
+      // Initialize ProgressiveLoader
+      if (typeof ProgressiveLoader !== 'undefined') {
+        window.progressiveLoader = new ProgressiveLoader(galleryGrid);
+        console.log('✅ Progressive loading initialized');
+      } else {
+        console.warn('ProgressiveLoader class not found');
+      }
+    } catch (error) {
+      console.error('❌ Failed to initialize progressive loading:', error);
+    }
+  }
+  
+  /**
+   * Initialize bulk operations for authenticated users
+   * Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 2.8, 2.9
+   */
+  function initializeBulkOperations() {
+    console.log('📦 Initializing Bulk Operations...');
+    
+    try {
+      const galleryGrid = document.getElementById('gallery-grid');
+      
+      // Only initialize for authenticated users
+      if (!galleryGrid || !window.currentUserId) {
+        console.log('ℹ️ Bulk operations skipped (not authenticated or no gallery)');
+        return;
+      }
+      
+      // Initialize BulkOperations
+      if (typeof BulkOperations !== 'undefined') {
+        window.bulkOperations = new BulkOperations(galleryGrid);
+        console.log('✅ Bulk operations initialized');
+      } else {
+        console.warn('BulkOperations class not found');
+      }
+    } catch (error) {
+      console.error('❌ Failed to initialize bulk operations:', error);
+    }
+  }
+  
+  /**
+   * Initialize smart search functionality
+   * Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.7
+   */
+  function initializeSmartSearch() {
+    console.log('🔍 Initializing Smart Search...');
+    
+    try {
+      const advancedSearchPanel = document.getElementById('advanced-search-panel');
+      const toggleButton = document.getElementById('toggle-advanced-search');
+      
+      // Initialize SmartSearch instance
+      if (advancedSearchPanel && typeof SmartSearch !== 'undefined') {
+        window.smartSearch = new SmartSearch(advancedSearchPanel);
+        
+        // Populate uploader dropdown
+        populateUploaderDropdown();
+        
+        console.log('✅ Smart search initialized');
+      } else {
+        console.warn('SmartSearch class or panel not found');
+      }
+      
+      // Toggle advanced search panel
+      if (toggleButton && advancedSearchPanel) {
+        toggleButton.addEventListener('click', function() {
+          advancedSearchPanel.classList.toggle('hidden');
+          
+          // Update button appearance
+          if (advancedSearchPanel.classList.contains('hidden')) {
+            toggleButton.textContent = '🔍+';
+            toggleButton.title = 'Show advanced search';
+          } else {
+            toggleButton.textContent = '🔍−';
+            toggleButton.title = 'Hide advanced search';
+          }
+        });
+      }
+    } catch (error) {
+      console.error('❌ Failed to initialize smart search:', error);
+    }
+  }
+  
+  /**
+   * Initialize mobile gestures for touch interactions
+   * Requirements: 8.4, 8.5, 8.6, 8.7, 8.8, 15.1, 15.2, 15.3, 15.4, 15.5, 15.6, 15.7, 15.8
+   */
+  function initializeMobileGestures() {
+    console.log('📱 Initializing Mobile Gestures...');
+    
+    try {
+      // Only initialize on mobile devices (screen width < 768px)
+      if (window.innerWidth >= 768) {
+        console.log('ℹ️ Mobile gestures skipped (desktop view)');
+        return;
+      }
+      
+      const galleryGrid = document.getElementById('gallery-grid');
+      if (!galleryGrid) {
+        console.warn('Gallery grid not found, skipping mobile gestures');
+        return;
+      }
+      
+      // Initialize GestureHandler if available
+      if (typeof GestureHandler !== 'undefined') {
+        // Initialize pull-to-refresh on gallery
+        const pullToRefreshHandler = new GestureHandler(galleryGrid);
+        
+        // Set up pull-down callback for refresh
+        pullToRefreshHandler.onPullDown(() => {
+          console.log('Pull-to-refresh triggered');
+          showRefreshSpinner();
+          
+          // Reload the page after a short delay
+          setTimeout(() => {
+            window.location.reload();
+          }, 500);
+        });
+        
+        // Initialize swipe gestures on image cards
+        const imageCards = document.querySelectorAll('[id^="image-card-"]');
+        imageCards.forEach(card => {
+          const cardGestureHandler = new GestureHandler(card);
+          
+          // Swipe left to reveal actions
+          cardGestureHandler.onSwipeLeft(() => {
+            revealCardActions(card);
+          });
+          
+          // Swipe right to hide actions
+          cardGestureHandler.onSwipeRight(() => {
+            hideCardActions(card);
+          });
+        });
+        
+        window.mobileGestureHandlers = {
+          pullToRefresh: pullToRefreshHandler
+        };
+        
+        console.log('✅ Mobile gestures initialized');
+      } else {
+        console.warn('GestureHandler class not found');
+      }
+    } catch (error) {
+      console.error('❌ Failed to initialize mobile gestures:', error);
+    }
+  }
+  
+  /**
+   * Show refresh spinner during pull-to-refresh
+   */
+  function showRefreshSpinner() {
+    const spinner = document.createElement('div');
+    spinner.id = 'refresh-spinner';
+    spinner.className = 'fixed top-20 left-1/2 transform -translate-x-1/2 z-50';
+    spinner.innerHTML = `
+      <div class="bg-white dark:bg-gray-800 rounded-full p-3 shadow-lg">
+        <svg class="animate-spin h-6 w-6 text-teal-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+      </div>
+    `;
+    document.body.appendChild(spinner);
+  }
+  
+  /**
+   * Reveal action buttons on image card (swipe left)
+   */
+  function revealCardActions(card) {
+    // Add a class to show actions
+    card.classList.add('actions-revealed');
+    
+    // Add visual feedback
+    card.style.transform = 'translateX(-80px)';
+    card.style.transition = 'transform 0.3s ease';
+    
+    // Create action buttons if they don't exist
+    if (!card.querySelector('.swipe-actions')) {
+      const actions = document.createElement('div');
+      actions.className = 'swipe-actions absolute right-0 top-0 bottom-0 flex items-center gap-2 pr-4';
+      actions.innerHTML = `
+        <button class="swipe-action-btn bg-red-500 text-white p-3 rounded-full" data-action="delete">
+          🗑️
+        </button>
+        <button class="swipe-action-btn bg-blue-500 text-white p-3 rounded-full" data-action="download">
+          ⬇️
+        </button>
+      `;
+      card.style.position = 'relative';
+      card.appendChild(actions);
+      
+      // Wire up action buttons
+      actions.querySelector('[data-action="delete"]').addEventListener('click', () => {
+        const imageId = card.id.replace('image-card-', '');
+        const deleteBtn = card.querySelector('.delete-btn');
+        if (deleteBtn) deleteBtn.click();
+      });
+      
+      actions.querySelector('[data-action="download"]').addEventListener('click', () => {
+        const imageId = card.id.replace('image-card-', '');
+        const downloadLink = card.querySelector('a[href^="/download/"]');
+        if (downloadLink) downloadLink.click();
+      });
+    }
+  }
+  
+  /**
+   * Hide action buttons on image card (swipe right)
+   */
+  function hideCardActions(card) {
+    card.classList.remove('actions-revealed');
+    card.style.transform = 'translateX(0)';
+  }
+  
+  /**
+   * Populate the uploader dropdown with available users
+   */
+  async function populateUploaderDropdown() {
+    const uploaderSelect = document.getElementById('uploader-filter');
+    if (!uploaderSelect) return;
+    
+    try {
+      // Fetch list of users who have uploaded images
+      const response = await fetch('/api/uploaders');
+      if (!response.ok) {
+        console.warn('Failed to fetch uploaders list');
+        return;
+      }
+      
+      const uploaders = await response.json();
+      
+      // Clear existing options (except "All uploaders")
+      uploaderSelect.innerHTML = '<option value="">All uploaders</option>';
+      
+      // Add uploader options
+      uploaders.forEach(uploader => {
+        const option = document.createElement('option');
+        option.value = uploader.id;
+        option.textContent = `${uploader.username} (${uploader.image_count} images)`;
+        uploaderSelect.appendChild(option);
+      });
+    } catch (error) {
+      console.error('Error populating uploader dropdown:', error);
+    }
+  }
+</script>
 {% endblock %}

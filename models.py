@@ -59,6 +59,8 @@ class Image(db.Model):
     )
     # View counter — tracks how many times this image was viewed (default 0)
     view_count = db.Column(db.Integer, nullable=False, default=0, server_default='0')
+    # Thumbnail URL for progressive loading (50px max dimension) — Premium UX Enhancement
+    thumbnail_url = db.Column(db.String(512), nullable=True)
 
     # One image → many tags; deleting an image cascades to its tags (Requirement 7.5)
     tags = db.relationship(
@@ -73,6 +75,12 @@ class Image(db.Model):
         backref="image",
         lazy=True,
         cascade="all, delete-orphan",
+    )
+
+    # Indexes for search optimization (Premium UX Enhancements - Requirement 13.6)
+    __table_args__ = (
+        db.Index("ix_images_uploaded_at", "uploaded_at"),  # For date range queries
+        db.Index("ix_images_user_id", "user_id"),  # For uploader filtering
     )
 
     def __repr__(self):

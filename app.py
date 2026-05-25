@@ -176,6 +176,68 @@ def create_app(config=None):
             # Don't re-raise - allow app to start even if migration fails
             pass
 
+        # Migration: Add thumbnail_url column if it doesn't exist
+        try:
+            from sqlalchemy import inspect, text
+            inspector = inspect(db.engine)
+            columns = [col['name'] for col in inspector.get_columns('images')]
+            
+            if 'thumbnail_url' not in columns:
+                with db.engine.connect() as conn:
+                    conn.execute(text('ALTER TABLE images ADD COLUMN thumbnail_url VARCHAR(512)'))
+                    conn.commit()
+                logging.info("Added thumbnail_url column to images table")
+        except Exception as e:
+            logging.debug(f"thumbnail_url column migration: {e}")
+            pass
+
+        # Migration: Add search optimization indexes
+        try:
+            from sqlalchemy import inspect, text
+            inspector = inspect(db.engine)
+            existing_indexes = {idx['name'] for idx in inspector.get_indexes('images')}
+            is_postgres = 'postgresql' in str(db.engine.url)
+            
+            with db.engine.connect() as conn:
+                # Add index on uploaded_at for date range queries
+                if 'ix_images_uploaded_at' not in existing_indexes:
+                    if is_postgres:
+                        conn.execute(text('CREATE INDEX ix_images_uploaded_at ON images (uploaded_at)'))
+                    else:
+                        conn.execute(text('CREATE INDEX IF NOT EXISTS ix_images_uploaded_at ON images (uploaded_at)'))
+                    conn.commit()
+                    logging.info("Created index ix_images_uploaded_at on images.uploaded_at")
+                
+                # Add index on user_id for uploader filtering
+                if 'ix_images_user_id' not in existing_indexes:
+                    if is_postgres:
+                        conn.execute(text('CREATE INDEX ix_images_user_id ON images (user_id)'))
+                    else:
+                        conn.execute(text('CREATE INDEX IF NOT EXISTS ix_images_user_id ON images (user_id)'))
+                    conn.commit()
+                    logging.info("Created index ix_images_user_id on images.user_id")
+        except Exception as e:
+            logging.debug(f"Index migration: {e}")
+            pass
+
+        # Migration: Add thumbnail_url column to images table if it doesn't exist
+        # (Premium UX Enhancement - Progressive Loading)
+        try:
+            from sqlalchemy import inspect, text
+            inspector = inspect(db.engine)
+            image_columns = [col['name'] for col in inspector.get_columns('images')]
+            
+            if 'thumbnail_url' not in image_columns:
+                with db.engine.connect() as conn:
+                    conn.execute(text('ALTER TABLE images ADD COLUMN thumbnail_url VARCHAR(512)'))
+                    conn.commit()
+                logging.info("Added thumbnail_url column to images table")
+        except Exception as e:
+            # Column might already exist or database doesn't support ALTER TABLE
+            logging.warning(f"thumbnail_url column migration error: {e}")
+            # Don't re-raise - allow app to start even if migration fails
+            pass
+
     # ------------------------------------------------------------------
     # 7. Initialise Flask-Login (Req 2.5, 2.6)
     # ------------------------------------------------------------------
@@ -217,6 +279,51 @@ def create_app(config=None):
         register_routes(app)
     except ImportError:
         # Routes module not yet implemented — acceptable during early tasks
+        pass
+
+    # ------------------------------------------------------------------
+    # 10. Initialize undo queue background worker (Premium UX Enhancement)
+    # ------------------------------------------------------------------
+    # Start background thread to process expired deletions every second.
+    # The thread is created as a daemon so it terminates with the main process.
+    # Requirements: 14.6, 14.7
+    try:
+        import atexit
+        import s3_service
+        from undo_queue import start_background_worker, undo_queue
+        
+        # Start the background worker thread
+        start_background_worker(app, db, s3_service)
+        
+        # Register graceful shutdown handler to commit pending deletions
+        @atexit.register
+        def shutdown_handler():
+            """
+            Graceful shutdown handler that commits all pending deletions.
+            
+            This ensures that pending deletions in the undo queue are processed
+            before the application terminates, preventing orphaned S3 objects.
+            
+            Requirements: REQ-14.7 (Handle server restart by committing pending deletions)
+            """
+            try:
+                with app.app_context():
+                    queue_size = undo_queue.get_queue_size()
+                    if queue_size > 0:
+                        logging.info(
+                            "Shutdown: Processing %d pending deletions from undo queue",
+                            queue_size
+                        )
+                        # Process all expired deletions immediately
+                        undo_queue.process_expired_deletions(db, s3_service)
+                        logging.info("Shutdown: Undo queue processed successfully")
+            except Exception as exc:
+                logging.error("Error during shutdown cleanup: %s", exc)
+        
+        logging.info("Undo queue background worker initialized")
+    except ImportError as e:
+        # Undo queue or s3_service not yet implemented — acceptable during early tasks
+        logging.warning(f"Undo queue initialization skipped: {e}")
         pass
 
     return app

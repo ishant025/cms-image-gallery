@@ -13,6 +13,7 @@ Routes:
   POST /delete/<int:image_id>  Delete owned media (auth required)
   POST /like/<int:image_id>    Toggle like/dislike (auth required)
   GET  /search                 Tag-based search (public, JSON response)
+  POST /api/undo-delete/<int:image_id>  Restore image from undo queue (auth required)
 
 Requirements: 2.5, 2.6, 3.6, 7.2, 7.3, 8.10, 8.11
 """
@@ -25,13 +26,11 @@ from flask_login import login_required
 from sqlalchemy import func
 
 import auth_service
-import delete_service
 import like_service
 import search_service
 import upload_service
-from delete_service import AuthorizationError, ImageNotFoundError
 from models import Image, Likes, Tag, User, db
-from s3_service import S3DeleteError, S3UploadError
+from s3_service import S3UploadError
 
 logger = logging.getLogger(__name__)
 
@@ -117,6 +116,7 @@ def register_routes(app):
                     {
                         "id": image.id,
                         "s3_url": image.s3_url,
+                        "thumbnail_url": image.thumbnail_url,  # Thumbnail for progressive loading
                         "s3_key": image.s3_key,
                         "user_id": image.user_id,
                         "uploaded_at": uploaded_at_str,
@@ -274,44 +274,102 @@ def register_routes(app):
         return render_template("upload.html")
 
     # ------------------------------------------------------------------
-    # POST /delete/<int:image_id>  — Delete owned media
+    # POST /delete/<int:image_id>  — Delete owned media (with undo queue)
     # ------------------------------------------------------------------
     @app.route("/delete/<int:image_id>", methods=["POST"])
     @login_required
     def delete(image_id):
         """
-        Delete a media item owned by the current user.
+        Queue a media item for deletion with 30-second undo window.
+
+        Instead of immediately deleting from S3, this route:
+        1. Verifies the user owns the image (or is admin)
+        2. Serializes the image data for potential restoration
+        3. Deletes the image from the database
+        4. Adds it to the undo queue with 30-second TTL
+        5. Returns success immediately
+
+        The actual S3 deletion happens after 30 seconds via the background
+        worker, unless the user undoes the deletion.
 
         Returns JSON:
-          - 200 {"success": True}           on success
-          - 403 {"error": "Forbidden"}       if the user does not own the image
-          - 404 {"error": "Not found"}       if the image does not exist
-          - 500 {"error": "..."}             if S3 or DB deletion fails
+          - 200 {"success": True, "undo_id": "123"}  on success
+          - 403 {"error": "Forbidden"}                if user doesn't own image
+          - 404 {"error": "Not found"}                if image doesn't exist
+          - 500 {"error": "..."}                      if DB deletion fails
 
         Requires authentication (Requirement 7.1).
+        Requirements: 7.2, 14.2, 14.3
         """
-        try:
-            # Delegate authorization, S3 deletion, and DB removal to Delete_Service
-            success, message = delete_service.delete_media(
-                image_id, flask_login.current_user.id
-            )
-        except ImageNotFoundError:
+        # Import undo_queue at function level to avoid circular imports
+        from undo_queue import undo_queue
+        
+        # --- Step 1: Fetch the image record ---
+        image = db.session.get(Image, image_id)
+        
+        if image is None:
             # Image does not exist — return 404 JSON (Requirement 7.2)
             return jsonify({"error": "Not found"}), 404
-        except AuthorizationError:
-            # Requesting user does not own the image — return 403 JSON (Req 7.3)
+        
+        # --- Step 2: Authorization check ---
+        # Admin users can delete any image; regular users can only delete their own
+        requesting_user = flask_login.current_user
+        is_admin = requesting_user.is_admin if hasattr(requesting_user, 'is_admin') else False
+        
+        if not is_admin and image.user_id != requesting_user.id:
+            # User does not own the image — return 403 JSON (Requirement 7.3)
             return jsonify({"error": "Forbidden"}), 403
-        except S3DeleteError as exc:
-            # S3 deletion failed — return 500 JSON (Requirement 7.6)
-            logger.error("S3DeleteError during delete of image %d: %s", image_id, exc)
+        
+        # --- Step 3: Serialize image data for potential restoration ---
+        # Collect all image metadata including tags for restoration
+        image_data = {
+            "s3_url": image.s3_url,
+            "s3_key": image.s3_key,
+            "thumbnail_url": image.thumbnail_url,
+            "uploaded_at": image.uploaded_at,
+            "view_count": image.view_count,
+            "tags": []
+        }
+        
+        # Serialize tags with all metadata
+        for tag in image.tags:
+            tag_data = {
+                "name": tag.name,
+                "confidence": tag.confidence,
+                "is_ai_generated": tag.is_ai_generated
+            }
+            image_data["tags"].append(tag_data)
+        
+        # --- Step 4: Delete from database (but NOT from S3 yet) ---
+        # The undo queue will handle S3 deletion after 30 seconds
+        try:
+            db.session.delete(image)
+            db.session.commit()
+            logger.info(
+                "Deleted image %d from database (user=%d), queued for S3 deletion",
+                image_id, requesting_user.id
+            )
+        except Exception as exc:
+            db.session.rollback()
+            logger.error("Failed to delete image %d from database: %s", image_id, exc)
             return jsonify({"error": "Deletion failed. Please try again."}), 500
-
-        if success:
-            # Return success JSON so the frontend can remove the card (Req 7.8)
-            return jsonify({"success": True}), 200
-
-        # Service returned (False, message) — generic server error
-        return jsonify({"error": message}), 500
+        
+        # --- Step 5: Add to undo queue ---
+        # The image is now removed from the database but still in S3
+        # The background worker will delete from S3 after 30 seconds
+        undo_id = undo_queue.add_to_undo_queue(
+            image_id=image_id,
+            user_id=requesting_user.id,
+            image_data=image_data
+        )
+        
+        logger.info(
+            "Added image %d to undo queue (undo_id=%s, user=%d)",
+            image_id, undo_id, requesting_user.id
+        )
+        
+        # Return success with undo_id so frontend can show undo toast
+        return jsonify({"success": True, "undo_id": undo_id}), 200
 
     # ------------------------------------------------------------------
     # POST /like/<int:image_id>  — Toggle like/dislike reaction
@@ -599,3 +657,372 @@ def register_routes(app):
         db.session.commit()
 
         return jsonify({"success": True, "views": image.view_count}), 200
+
+    # ------------------------------------------------------------------
+    # GET /api/tags/autocomplete  — Tag autocomplete for smart search
+    # ------------------------------------------------------------------
+    @app.route("/api/tags/autocomplete", methods=["GET"])
+    def tags_autocomplete():
+        """
+        Autocomplete endpoint for tag search.
+        
+        Query Parameters:
+          - q: Search query (minimum 2 characters)
+        
+        Returns:
+          JSON array of matching tags with usage counts
+        """
+        query = request.args.get("q", "").strip().lower()
+        
+        if len(query) < 2:
+            return jsonify([]), 200
+        
+        try:
+            # Query tags that match the search term
+            # Group by tag name and count images
+            from sqlalchemy import func
+            
+            tag_results = (
+                db.session.query(
+                    Tag.name,
+                    func.count(Tag.id).label('count')
+                )
+                .filter(Tag.name.like(f"%{query}%"))
+                .group_by(Tag.name)
+                .order_by(func.count(Tag.id).desc())
+                .limit(10)
+                .all()
+            )
+            
+            # Format results
+            suggestions = [
+                {"name": tag_name, "count": count}
+                for tag_name, count in tag_results
+            ]
+            
+            return jsonify(suggestions), 200
+            
+        except Exception as exc:
+            logger.exception("Tag autocomplete failed: %s", exc)
+            return jsonify([]), 200
+
+    # ------------------------------------------------------------------
+    # GET /api/uploaders  — Get list of users who have uploaded images
+    # ------------------------------------------------------------------
+    @app.route("/api/uploaders", methods=["GET"])
+    def get_uploaders():
+        """
+        Get list of users who have uploaded images.
+        
+        Returns:
+          JSON array of users with their image counts
+        """
+        try:
+            from sqlalchemy import func
+            
+            # Query users who have uploaded images
+            uploader_results = (
+                db.session.query(
+                    User.id,
+                    User.username,
+                    func.count(Image.id).label('image_count')
+                )
+                .join(Image, User.id == Image.user_id)
+                .group_by(User.id, User.username)
+                .order_by(func.count(Image.id).desc())
+                .all()
+            )
+            
+            # Format results
+            uploaders = [
+                {
+                    "id": user_id,
+                    "username": username,
+                    "image_count": image_count
+                }
+                for user_id, username, image_count in uploader_results
+            ]
+            
+            return jsonify(uploaders), 200
+            
+        except Exception as exc:
+            logger.exception("Get uploaders failed: %s", exc)
+            return jsonify([]), 200
+
+    # ------------------------------------------------------------------
+    # GET /api/search-advanced  — Advanced search with multiple filters
+    # ------------------------------------------------------------------
+    @app.route("/api/search-advanced", methods=["GET"])
+    def search_advanced():
+        """
+        Advanced search endpoint supporting multiple filters.
+        
+        Query Parameters:
+          - tags: Comma-separated tag names (AND logic - must have ALL tags)
+          - date_from: Start date in ISO format (YYYY-MM-DD)
+          - date_to: End date in ISO format (YYYY-MM-DD)
+          - uploader: Username to filter by
+          - min_likes: Minimum number of likes (integer)
+          - sort: Sort order ("newest", "most_liked", "most_viewed")
+        
+        Returns:
+          JSON response with:
+          - results: Array of matching images with metadata
+          - count: Total number of results
+          - query: Echo of the query parameters used
+        
+        Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6, 5.8, 13.1-13.8
+        """
+        try:
+            # Parse query parameters
+            tags_param = request.args.get("tags", "").strip()
+            date_from = request.args.get("date_from", "").strip()
+            date_to = request.args.get("date_to", "").strip()
+            uploader_username = request.args.get("uploader", "").strip()
+            uploader_id_param = request.args.get("uploader_id", "").strip()
+            min_likes_param = request.args.get("min_likes", "").strip()
+            sort_param = request.args.get("sort", "newest").strip()
+            
+            # Build filters dictionary for query_builder
+            filters = {}
+            
+            # Parse tags (comma-separated)
+            if tags_param:
+                tags_list = [tag.strip().lower() for tag in tags_param.split(",") if tag.strip()]
+                if tags_list:
+                    filters["tags"] = tags_list
+            
+            # Parse date range
+            if date_from:
+                filters["date_from"] = date_from
+            if date_to:
+                filters["date_to"] = date_to
+            
+            # Parse uploader (accept either username or user_id)
+            if uploader_id_param:
+                # Direct user_id provided
+                try:
+                    uploader_id = int(uploader_id_param)
+                    filters["uploader_id"] = uploader_id
+                except ValueError:
+                    # Invalid uploader_id - ignore it
+                    pass
+            elif uploader_username:
+                # Username provided - convert to user_id
+                uploader = User.query.filter_by(username=uploader_username).first()
+                if uploader:
+                    filters["uploader_id"] = uploader.id
+                else:
+                    # Username not found - return empty results
+                    return jsonify({
+                        "results": [],
+                        "count": 0,
+                        "query": {
+                            "tags": filters.get("tags", []),
+                            "date_from": date_from,
+                            "date_to": date_to,
+                            "uploader": uploader_username,
+                            "min_likes": min_likes_param,
+                            "sort": sort_param
+                        }
+                    }), 200
+            
+            # Parse minimum likes
+            if min_likes_param:
+                try:
+                    min_likes = int(min_likes_param)
+                    if min_likes > 0:
+                        filters["min_likes"] = min_likes
+                except ValueError:
+                    # Invalid min_likes parameter - ignore it
+                    pass
+            
+            # Set sort order
+            filters["sort_by"] = sort_param if sort_param in ["newest", "most_liked", "most_viewed"] else "newest"
+            
+            # Import query_builder and build the query
+            import query_builder
+            query = query_builder.build_search_query(filters=filters)
+            
+            # Execute query
+            images = query.all()
+            
+            # Serialize results
+            results = []
+            for image in images:
+                # Get username
+                username = image.uploader.username if image.uploader else ""
+                
+                # Get tags
+                tag_data = []
+                for tag in image.tags:
+                    tag_info = {
+                        'name': tag.name,
+                        'is_ai': tag.is_ai_generated,
+                        'confidence': tag.confidence if tag.is_ai_generated else None
+                    }
+                    tag_data.append(tag_info)
+                
+                tag_names = [tag.name for tag in image.tags]
+                
+                # Count likes and dislikes
+                likes_count = (
+                    db.session.query(func.count(Likes.id))
+                    .filter(Likes.image_id == image.id, Likes.reaction == "like")
+                    .scalar()
+                ) or 0
+                
+                dislikes_count = (
+                    db.session.query(func.count(Likes.id))
+                    .filter(Likes.image_id == image.id, Likes.reaction == "dislike")
+                    .scalar()
+                ) or 0
+                
+                # Check current user's reaction (if authenticated)
+                user_reaction = None
+                if flask_login.current_user.is_authenticated:
+                    user_like = Likes.query.filter_by(
+                        user_id=flask_login.current_user.id,
+                        image_id=image.id
+                    ).first()
+                    if user_like:
+                        user_reaction = user_like.reaction
+                
+                # Format upload date
+                uploaded_at_str = image.uploaded_at.strftime("%Y-%m-%d") if image.uploaded_at else ""
+                
+                results.append({
+                    "id": image.id,
+                    "s3_url": image.s3_url,
+                    "thumbnail_url": image.thumbnail_url,  # Include thumbnail for progressive loading
+                    "s3_key": image.s3_key,
+                    "user_id": image.user_id,
+                    "uploaded_at": uploaded_at_str,
+                    "username": username,
+                    "tags": tag_names,
+                    "tag_data": tag_data,
+                    "likes": likes_count,
+                    "dislikes": dislikes_count,
+                    "views": image.view_count,
+                    "user_reaction": user_reaction,
+                })
+            
+            # Return results with query echo
+            return jsonify({
+                "results": results,
+                "count": len(results),
+                "query": {
+                    "tags": filters.get("tags", []),
+                    "date_from": date_from,
+                    "date_to": date_to,
+                    "uploader": uploader_username,
+                    "min_likes": min_likes_param,
+                    "sort": sort_param
+                }
+            }), 200
+            
+        except Exception as exc:
+            # Log the error and return 500
+            logger.exception("Advanced search failed: %s", exc)
+            return jsonify({"error": "Search failed. Please try again."}), 500
+
+    # ------------------------------------------------------------------
+    # POST /api/undo-delete/<int:image_id>  — Restore image from undo queue
+    # ------------------------------------------------------------------
+    @app.route("/api/undo-delete/<int:image_id>", methods=["POST"])
+    @login_required
+    def undo_delete(image_id):
+        """
+        Restore an image from the undo queue.
+
+        Returns JSON:
+          - 200 {"success": True, "image": {...}}  on success
+          - 404 {"error": "..."}                   if image not in queue or expired
+          - 403 {"error": "Forbidden"}             if user doesn't own the image
+          - 500 {"error": "..."}                   if restoration fails
+
+        Requires authentication (Requirement 7.3).
+        """
+        import s3_service
+        from undo_queue import undo_queue
+
+        try:
+            # Attempt to restore from undo queue
+            restored_data = undo_queue.restore_from_undo(image_id, db, s3_service)
+
+            if restored_data is None:
+                # Image not found in queue or expired
+                return jsonify({"error": "Undo window expired or image not found"}), 404
+
+            # Verify the restored image belongs to the current user
+            if restored_data.get("user_id") != flask_login.current_user.id:
+                # User doesn't own this image - delete it again
+                image_record = db.session.get(Image, image_id)
+                if image_record:
+                    db.session.delete(image_record)
+                    db.session.commit()
+                return jsonify({"error": "Forbidden"}), 403
+
+            # Fetch the restored image from database to return complete data
+            restored_image = db.session.get(Image, image_id)
+            if not restored_image:
+                return jsonify({"error": "Restoration failed"}), 500
+
+            # Build response with image data
+            username = restored_image.uploader.username if restored_image.uploader else ""
+            
+            # Collect tag data
+            tag_data = []
+            for tag in restored_image.tags:
+                tag_info = {
+                    'name': tag.name,
+                    'is_ai': tag.is_ai_generated,
+                    'confidence': tag.confidence if tag.is_ai_generated else None
+                }
+                tag_data.append(tag_info)
+            
+            tag_names = [tag.name for tag in restored_image.tags]
+            
+            # Count likes and dislikes
+            likes_count = (
+                db.session.query(func.count(Likes.id))
+                .filter(Likes.image_id == image_id, Likes.reaction == "like")
+                .scalar()
+            ) or 0
+            
+            dislikes_count = (
+                db.session.query(func.count(Likes.id))
+                .filter(Likes.image_id == image_id, Likes.reaction == "dislike")
+                .scalar()
+            ) or 0
+            
+            uploaded_at_str = (
+                restored_image.uploaded_at.strftime("%Y-%m-%d") 
+                if restored_image.uploaded_at else ""
+            )
+
+            image_response = {
+                "id": restored_image.id,
+                "s3_url": restored_image.s3_url,
+                "s3_key": restored_image.s3_key,
+                "thumbnail_url": restored_image.thumbnail_url,
+                "user_id": restored_image.user_id,
+                "uploaded_at": uploaded_at_str,
+                "username": username,
+                "tags": tag_names,
+                "tag_data": tag_data,
+                "likes": likes_count,
+                "dislikes": dislikes_count,
+                "views": restored_image.view_count,
+            }
+
+            logger.info(
+                "User %d successfully restored image %d from undo queue",
+                flask_login.current_user.id, image_id
+            )
+
+            return jsonify({"success": True, "image": image_response}), 200
+
+        except Exception as exc:
+            logger.exception("Failed to restore image %d: %s", image_id, exc)
+            return jsonify({"error": "Restoration failed. Please try again."}), 500

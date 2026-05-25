@@ -1,0 +1,855 @@
+/**
+ * mobile-responsive.css — Mobile responsiveness and touch target optimization
+ *
+ * Features:
+ *   - Minimum 44x44px touch targets for all interactive elements
+ *   - Responsive breakpoints for mobile, tablet, desktop
+ *   - Optimized image card layout for mobile screens
+ *   - Pull-to-refresh loading spinner styles
+ *   - Mobile navigation enhancements
+ *   - Swipe gesture visual feedback
+ *
+ * Requirements: 8.9 (Requirement 8: Mobile Experience Enhancements)
+ */
+
+/* ======================================================================
+   Touch Target Optimization (Requirement 8.9)
+   ====================================================================== */
+
+/**
+ * Ensure all interactive elements meet minimum 44x44px touch target size
+ * for comfortable mobile interaction
+ */
+
+/* Buttons - minimum touch target */
+button,
+.btn,
+[role="button"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.625rem 1rem; /* 10px 16px */
+}
+
+/* Links - minimum touch target */
+a {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Exception for inline text links */
+p a,
+span a,
+.inline-link {
+  min-height: auto;
+  display: inline;
+}
+
+/* Checkbox and radio inputs */
+input[type="checkbox"],
+input[type="radio"] {
+  min-width: 24px;
+  min-height: 24px;
+  cursor: pointer;
+}
+
+/* Mobile: Larger touch targets */
+@media (max-width: 768px) {
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-width: 32px;
+    min-height: 32px;
+  }
+}
+
+/* Icon buttons */
+.icon-btn,
+button[aria-label] {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Reaction buttons (like/dislike) */
+.reaction-btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+/* Delete buttons */
+.delete-btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Tag badges - clickable */
+.tag-badge {
+  min-height: 32px;
+  padding: 0.375rem 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+/* Mobile navigation items */
+.mobile-nav-item {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem 1rem;
+}
+
+/* ======================================================================
+   Responsive Breakpoints
+   ====================================================================== */
+
+/**
+ * Mobile-first responsive design with breakpoints:
+ * - Mobile: < 768px
+ * - Tablet: 768px - 1024px
+ * - Desktop: > 1024px
+ */
+
+/* Mobile (< 768px) */
+@media (max-width: 767px) {
+  /* Reduce padding on mobile */
+  .max-w-7xl {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Stack elements vertically */
+  .flex-wrap {
+    flex-direction: column;
+  }
+
+  /* Full-width buttons on mobile */
+  .mobile-full-width {
+    width: 100%;
+  }
+
+  /* Larger text for readability */
+  body {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* Adjust heading sizes */
+  h1 {
+    font-size: 1.75rem; /* 28px */
+  }
+
+  h2 {
+    font-size: 1.5rem; /* 24px */
+  }
+
+  h3 {
+    font-size: 1.25rem; /* 20px */
+  }
+
+  /* Increase spacing between interactive elements */
+  .space-y-2 {
+    gap: 0.75rem;
+  }
+
+  /* Hide desktop-only elements */
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* Show mobile-only elements */
+  .mobile-only {
+    display: block !important;
+  }
+}
+
+/* Tablet (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  /* Adjust container width */
+  .max-w-7xl {
+    max-width: 90%;
+  }
+
+  /* 2-column grid for tablets */
+  .tablet-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Desktop (> 1024px) */
+@media (min-width: 1025px) {
+  /* Hide mobile-only elements */
+  .mobile-only {
+    display: none !important;
+  }
+
+  /* Show desktop-only elements */
+  .desktop-only {
+    display: block !important;
+  }
+}
+
+/* ======================================================================
+   Mobile Image Card Layout Optimization
+   ====================================================================== */
+
+/**
+ * Optimize image card layout for mobile screens
+ * - Single column on mobile
+ * - Larger images for better visibility
+ * - Increased spacing between cards
+ */
+
+@media (max-width: 767px) {
+  /* Single column layout */
+  #gallery-grid-container {
+    columns: 1 !important;
+    gap: 1rem;
+  }
+
+  /* Image cards */
+  [id^="image-card-"] {
+    margin-bottom: 1.5rem;
+    break-inside: avoid;
+  }
+
+  /* Image container */
+  .image-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 1rem;
+  }
+
+  /* Image sizing */
+  .image-container img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    max-height: 400px;
+  }
+
+  /* Card body padding */
+  [id^="image-card-"] > div {
+    padding: 1rem;
+  }
+
+  /* Tag badges - wrap on mobile */
+  .tag-badge {
+    font-size: 0.75rem;
+    padding: 0.25rem 0.625rem;
+  }
+
+  /* Reaction buttons - larger spacing */
+  .reaction-btn {
+    font-size: 1rem;
+    padding: 0.625rem 0.875rem;
+  }
+
+  /* Search bar - full width */
+  #search-input {
+    width: 100%;
+    font-size: 1rem;
+    padding: 0.875rem 1rem;
+  }
+
+  /* Advanced search panel */
+  #advanced-search-panel {
+    padding: 1rem;
+    margin: 0 -0.5rem;
+  }
+
+  /* Preferences controls - stack vertically */
+  .flex.flex-wrap.gap-3 {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .flex.items-center.gap-2 {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  /* Selectors - full width */
+  #grid-size-selector,
+  #sort-order-selector,
+  #view-mode-selector {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+/* ======================================================================
+   Pull-to-Refresh Loading Spinner
+   ====================================================================== */
+
+/**
+ * Loading spinner styles for pull-to-refresh gesture
+ */
+
+/* Pull-to-refresh container */
+.pull-to-refresh-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 80px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 100;
+  transform: translateY(-100%);
+  transition: transform 0.3s ease-out;
+  pointer-events: none;
+}
+
+.dark .pull-to-refresh-container {
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.95) 0%, rgba(17, 24, 39, 0) 100%);
+}
+
+/* Active state */
+.pull-to-refresh-container.active {
+  transform: translateY(0);
+}
+
+/* Loading spinner */
+.pull-to-refresh-spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid rgba(15, 92, 78, 0.2);
+  border-top-color: #0f5c4e;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.dark .pull-to-refresh-spinner {
+  border-color: rgba(15, 140, 104, 0.2);
+  border-top-color: #0f8c68;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Pull-to-refresh text */
+.pull-to-refresh-text {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #0f5c4e;
+}
+
+.dark .pull-to-refresh-text {
+  color: #0f8c68;
+}
+
+/* ======================================================================
+   Mobile Navigation Enhancements
+   ====================================================================== */
+
+/**
+ * Enhanced mobile bottom navigation with auto-hide on scroll
+ */
+
+/* Mobile bottom navigation */
+#mobile-bottom-nav {
+  transition: transform 0.3s ease-out;
+  will-change: transform;
+}
+
+/* Hidden state (scrolling down) */
+#mobile-bottom-nav.nav-hidden {
+  transform: translateY(100%);
+}
+
+/* Navigation items */
+.mobile-nav-item {
+  position: relative;
+  transition: all 0.2s ease;
+}
+
+/* Active state indicator */
+.mobile-nav-item::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0f5c4e, #0f8c68);
+  border-radius: 3px 3px 0 0;
+  transition: width 0.3s ease;
+}
+
+/* Active state */
+.mobile-nav-item.text-brand-600::after,
+.mobile-nav-item.dark\:text-teal-400::after {
+  width: 60%;
+}
+
+/* Hover effect (for devices that support hover) */
+@media (hover: hover) {
+  .mobile-nav-item:hover {
+    background: rgba(15, 92, 78, 0.05);
+  }
+
+  .dark .mobile-nav-item:hover {
+    background: rgba(15, 140, 104, 0.1);
+  }
+}
+
+/* Active press effect */
+.mobile-nav-item:active {
+  transform: scale(0.95);
+}
+
+/* Safe area insets for notched devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  #mobile-bottom-nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+
+/* ======================================================================
+   Swipe Gesture Visual Feedback
+   ====================================================================== */
+
+/**
+ * Visual feedback for swipe gestures on image cards
+ */
+
+/* Swipe action container */
+.swipe-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1rem;
+  background: linear-gradient(90deg, transparent 0%, rgba(234, 108, 26, 0.95) 20%, rgba(234, 108, 26, 0.95) 100%);
+  transform: translateX(100%);
+  transition: transform 0.3s ease-out;
+  z-index: 10;
+}
+
+.dark .swipe-actions {
+  background: linear-gradient(90deg, transparent 0%, rgba(234, 108, 26, 0.9) 20%, rgba(234, 108, 26, 0.9) 100%);
+}
+
+/* Revealed state */
+.swipe-actions.revealed {
+  transform: translateX(0);
+}
+
+/* Swipe action buttons */
+.swipe-action-btn {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+}
+
+.swipe-action-btn:active {
+  transform: scale(0.9);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Swipe indicator (subtle hint) */
+.swipe-indicator {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 40px;
+  background: linear-gradient(180deg, transparent 0%, rgba(15, 92, 78, 0.3) 50%, transparent 100%);
+  border-radius: 2px;
+  opacity: 0;
+  animation: swipe-hint 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes swipe-hint {
+  0%, 100% {
+    opacity: 0;
+    transform: translateY(-50%) translateX(0);
+  }
+  50% {
+    opacity: 1;
+    transform: translateY(-50%) translateX(-8px);
+  }
+}
+
+/* Hide swipe indicator after first interaction */
+.swipe-interacted .swipe-indicator {
+  display: none;
+}
+
+/* ======================================================================
+   Lightbox Mobile Optimizations
+   ====================================================================== */
+
+/**
+ * Optimize lightbox for mobile viewing
+ */
+
+@media (max-width: 767px) {
+  /* Lightbox modal */
+  #lightbox-modal {
+    padding: 0.5rem;
+  }
+
+  /* Close button - larger on mobile */
+  #lightbox-close {
+    top: 1rem;
+    right: 1rem;
+    width: 48px;
+    height: 48px;
+    padding: 0.75rem;
+  }
+
+  /* Image container */
+  #lightbox-image-container {
+    max-height: 70vh;
+  }
+
+  /* Lightbox image */
+  #lightbox-image {
+    max-height: 70vh;
+    border-radius: 0.5rem;
+  }
+
+  /* Info bar - stack vertically */
+  #lightbox-modal .mt-4 {
+    flex-direction: column;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  /* Download button - full width */
+  #lightbox-download {
+    width: 100%;
+    justify-content: center;
+    margin-left: 0 !important;
+  }
+
+  /* Image viewer controls */
+  .image-viewer-controls {
+    bottom: 1rem;
+    left: 1rem;
+    right: 1rem;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .image-viewer-controls button {
+    min-width: 48px;
+    min-height: 48px;
+    font-size: 1.125rem;
+  }
+}
+
+/* ======================================================================
+   Modal and Overlay Mobile Optimizations
+   ====================================================================== */
+
+/**
+ * Optimize modals for mobile screens
+ */
+
+@media (max-width: 767px) {
+  /* Delete confirmation modal */
+  #delete-modal-box {
+    max-width: calc(100% - 2rem);
+    margin: 1rem;
+  }
+
+  /* Modal buttons - larger touch targets */
+  #delete-modal-box button {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+
+  /* Advanced search panel */
+  #advanced-search-panel {
+    max-width: 100%;
+    border-radius: 1rem;
+  }
+
+  /* Form inputs - larger on mobile */
+  input[type="text"],
+  input[type="date"],
+  input[type="email"],
+  input[type="password"],
+  select,
+  textarea {
+    min-height: 48px;
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+  }
+
+  /* Range slider - larger thumb */
+  input[type="range"] {
+    height: 8px;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    width: 24px;
+    height: 24px;
+  }
+
+  input[type="range"]::-moz-range-thumb {
+    width: 24px;
+    height: 24px;
+  }
+}
+
+/* ======================================================================
+   Toast Notifications Mobile Optimization
+   ====================================================================== */
+
+/**
+ * Optimize toast notifications for mobile
+ */
+
+@media (max-width: 767px) {
+  /* Toast container - bottom center on mobile */
+  #toast-container {
+    bottom: 5rem; /* Above mobile nav */
+    left: 1rem;
+    right: 1rem;
+    max-width: none;
+  }
+
+  /* Toast notification */
+  .toast-notification {
+    min-width: auto;
+    width: 100%;
+    max-width: none;
+  }
+
+  /* Toast buttons - larger */
+  .toast-btn {
+    min-height: 44px;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
+  }
+}
+
+/* ======================================================================
+   Accessibility Enhancements
+   ====================================================================== */
+
+/**
+ * Enhanced accessibility for mobile users
+ */
+
+/* Focus visible for keyboard navigation */
+*:focus-visible {
+  outline: 3px solid #0f5c4e;
+  outline-offset: 2px;
+}
+
+.dark *:focus-visible {
+  outline-color: #0f8c68;
+}
+
+/* Skip to main content link */
+.skip-to-main {
+  position: absolute;
+  top: -100px;
+  left: 0;
+  background: #0f5c4e;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  text-decoration: none;
+  z-index: 1000;
+  transition: top 0.3s ease;
+}
+
+.skip-to-main:focus {
+  top: 0;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  button,
+  .btn,
+  a {
+    border: 2px solid currentColor;
+  }
+
+  .mobile-nav-item::after {
+    height: 4px;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .pull-to-refresh-spinner {
+    animation: none;
+    border-top-color: transparent;
+    border-right-color: #0f5c4e;
+  }
+}
+
+/* ======================================================================
+   Performance Optimizations
+   ====================================================================== */
+
+/**
+ * Performance optimizations for mobile devices
+ */
+
+/* Hardware acceleration for animations */
+.mobile-nav-item,
+#mobile-bottom-nav,
+.swipe-actions,
+.pull-to-refresh-container {
+  will-change: transform;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+/* Optimize image rendering */
+img {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+}
+
+/* Smooth scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Prevent text size adjustment on orientation change */
+html {
+  -webkit-text-size-adjust: 100%;
+  -moz-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* ======================================================================
+   Landscape Orientation Optimizations
+   ====================================================================== */
+
+/**
+ * Optimize layout for landscape orientation on mobile
+ */
+
+@media (max-width: 767px) and (orientation: landscape) {
+  /* Reduce vertical spacing */
+  .py-8 {
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+  }
+
+  /* Compact navigation */
+  nav .h-20 {
+    height: 3.5rem;
+  }
+
+  /* Compact mobile bottom nav */
+  #mobile-bottom-nav {
+    padding-top: 0.25rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .mobile-nav-item {
+    padding: 0.375rem 0.75rem;
+  }
+
+  .mobile-nav-item span {
+    display: none;
+  }
+
+  /* Lightbox - maximize image space */
+  #lightbox-image-container {
+    max-height: 85vh;
+  }
+
+  #lightbox-image {
+    max-height: 85vh;
+  }
+}
+
+/* ======================================================================
+   Print Styles
+   ====================================================================== */
+
+/**
+ * Optimize for printing
+ */
+
+@media print {
+  /* Hide navigation and controls */
+  nav,
+  #mobile-bottom-nav,
+  #fab-upload,
+  #toast-container,
+  .pull-to-refresh-container,
+  .swipe-actions,
+  button,
+  .delete-btn,
+  .reaction-btn {
+    display: none !important;
+  }
+
+  /* Optimize image cards for printing */
+  [id^="image-card-"] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Remove shadows and effects */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Black text on white background */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+}

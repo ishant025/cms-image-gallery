@@ -26,6 +26,7 @@ import re
 from datetime import datetime, timezone
 
 import s3_service
+import image_service
 from botocore.exceptions import BotoCoreError, ClientError
 from models import Image, Tag, db
 from s3_service import S3UploadError
@@ -123,15 +124,18 @@ def handle_upload(file, user_id: int, raw_tags: str, ai_tags_data: list = None) 
         return False, tag_warning
 
     # ------------------------------------------------------------------
-    # Step 4: Upload to S3 (Requirements 3.4, 3.6)
+    # Step 4: Upload to S3 with thumbnail (Requirements 3.4, 3.6, 12.1, 12.2)
     # ------------------------------------------------------------------
     bucket = os.environ.get("AWS_S3_BUCKET_NAME")
     s3_key = s3_service.generate_s3_key(file.filename)
 
     try:
-        # Upload the file stream; raises S3UploadError on any failure
-        s3_url = s3_service.upload_file(file.stream, bucket, s3_key, mime_type)
-    except (S3UploadError, BotoCoreError, ClientError) as exc:
+        # Upload the file stream with thumbnail generation
+        # This uploads both full-resolution image and 50px thumbnail
+        s3_url, thumbnail_url = image_service.upload_with_thumbnail(
+            file.stream, bucket, s3_key, mime_type
+        )
+    except (S3UploadError, BotoCoreError, ClientError, ValueError) as exc:
         # Log the underlying error server-side; never expose it to the client
         logger.error("S3 upload failed for user %d: %s", user_id, exc)
         # Roll back any pending session state to avoid partial writes (Requirement 3.6)
@@ -139,12 +143,13 @@ def handle_upload(file, user_id: int, raw_tags: str, ai_tags_data: list = None) 
         return False, "Upload failed. Please try again."
 
     # ------------------------------------------------------------------
-    # Step 5: Persist Image record (Requirement 3.5)
+    # Step 5: Persist Image record with thumbnail URL (Requirement 3.5, 12.3)
     # ------------------------------------------------------------------
     # Record the UTC timestamp at the moment of successful S3 upload
     image = Image(
         s3_url=s3_url,
         s3_key=s3_key,
+        thumbnail_url=thumbnail_url,  # Store thumbnail URL for progressive loading
         user_id=user_id,
         uploaded_at=datetime.now(timezone.utc).replace(tzinfo=None),  # naive UTC
     )

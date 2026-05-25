@@ -57,6 +57,9 @@
     };
   </script>
 
+  <!-- Mobile Responsive CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/mobile-responsive.css') }}">
+
   {% block head %}{% endblock %}
 </head>
 <body class="bg-stone-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100 min-h-screen transition-colors duration-300 relative overflow-x-hidden">
@@ -303,11 +306,22 @@
     <!-- Image container -->
     <div class="relative max-w-6xl max-h-[90vh] w-full flex flex-col items-center">
       
-      <!-- Image -->
-      <img id="lightbox-image"
-           src=""
-           alt=""
-           class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl" />
+      <!-- Image with viewer support -->
+      <div id="lightbox-image-container" class="relative overflow-hidden flex items-center justify-center" style="max-height: 80vh;">
+        <img id="lightbox-image"
+             src=""
+             alt=""
+             class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
+             style="transform-origin: center center; transition: transform 0.2s ease-out;" />
+        
+        <!-- Pan instructions overlay (shown when zoomed) -->
+        <div id="pan-instructions" class="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/70 text-white px-4 py-2 rounded-lg text-sm font-medium hidden opacity-0 transition-opacity duration-300">
+          🖱️ Drag to pan • Scroll to zoom • R to rotate
+        </div>
+      </div>
+
+      <!-- Image Viewer Controls (added by image-viewer.js) -->
+      <!-- Controls will be dynamically inserted here by the ImageViewer module -->
 
       <!-- Info bar -->
       <div class="mt-4 bg-white/10 backdrop-blur-md rounded-xl px-6 py-3 flex items-center gap-4 text-white">
@@ -337,13 +351,74 @@
   </main>
 
   <!-- ================================================================
-       Floating Action Button (Upload)
+       Toast Notification Container
+       ================================================================ -->
+  <div id="toast-container"
+       class="fixed bottom-6 right-6 z-50 flex flex-col gap-3 pointer-events-none"
+       style="max-width: 400px;">
+    <!-- Toast notifications will be dynamically inserted here by undo-delete.js -->
+  </div>
+
+  <!-- ================================================================
+       Mobile Bottom Navigation (Mobile Only)
+       ================================================================ -->
+  {% if current_user.is_authenticated %}
+    <nav id="mobile-bottom-nav"
+         class="fixed bottom-0 left-0 right-0 z-40 md:hidden
+                bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg
+                border-t border-stone-200 dark:border-gray-700
+                shadow-lg transition-transform duration-300"
+         style="transform: translateY(0);">
+      <div class="flex items-center justify-around px-4 py-2 max-w-md mx-auto">
+        
+        <!-- Home Button -->
+        <a href="{{ url_for('index') }}"
+           class="mobile-nav-item flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-lg
+                  transition-all duration-200 active:scale-95
+                  {% if request.endpoint == 'index' %}text-brand-600 dark:text-teal-400{% else %}text-gray-500 dark:text-gray-400{% endif %}"
+           style="min-width: 44px; min-height: 44px;">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
+          <span class="text-xs font-medium">Home</span>
+        </a>
+
+        <!-- Upload Button -->
+        <a href="{{ url_for('upload') }}"
+           class="mobile-nav-item flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-lg
+                  transition-all duration-200 active:scale-95
+                  {% if request.endpoint == 'upload' %}text-brand-600 dark:text-teal-400{% else %}text-gray-500 dark:text-gray-400{% endif %}"
+           style="min-width: 44px; min-height: 44px;">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+          </svg>
+          <span class="text-xs font-medium">Upload</span>
+        </a>
+
+        <!-- Profile Button -->
+        <a href="{{ url_for('user_profile', username=current_user.username) }}"
+           class="mobile-nav-item flex flex-col items-center justify-center gap-1 py-2 px-4 rounded-lg
+                  transition-all duration-200 active:scale-95
+                  {% if request.endpoint == 'user_profile' and request.view_args.get('username') == current_user.username %}text-brand-600 dark:text-teal-400{% else %}text-gray-500 dark:text-gray-400{% endif %}"
+           style="min-width: 44px; min-height: 44px;">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+          </svg>
+          <span class="text-xs font-medium">Profile</span>
+        </a>
+
+      </div>
+    </nav>
+  {% endif %}
+
+  <!-- ================================================================
+       Floating Action Button (Upload) - Hidden on Mobile
        ================================================================ -->
   {% if current_user.is_authenticated %}
     <a href="{{ url_for('upload') }}"
        id="fab-upload"
        class="fixed bottom-6 right-6 z-40 w-14 h-14 rounded-full shadow-lg
-              flex items-center justify-center transition-all duration-300
+              hidden md:flex items-center justify-center transition-all duration-300
               hover:scale-110 hover:shadow-2xl active:scale-95
               backdrop-blur-md bg-gradient-to-br from-teal-500/90 to-teal-600/90
               border border-white/20"
@@ -407,6 +482,48 @@
           }
         });
       }
+
+      // Mobile Bottom Navigation Auto-Hide on Scroll
+      var mobileNav = document.getElementById('mobile-bottom-nav');
+      if (mobileNav) {
+        var lastScrollY = window.scrollY;
+        var scrollThreshold = 10; // Minimum scroll distance to trigger hide/show
+        var isScrolling = false;
+
+        function handleScroll() {
+          var currentScrollY = window.scrollY;
+          var scrollDelta = currentScrollY - lastScrollY;
+
+          // Only trigger if scroll delta exceeds threshold
+          if (Math.abs(scrollDelta) > scrollThreshold) {
+            if (scrollDelta > 0 && currentScrollY > 100) {
+              // Scrolling down and past 100px - hide nav
+              mobileNav.classList.add('nav-hidden');
+            } else if (scrollDelta < 0) {
+              // Scrolling up - show nav
+              mobileNav.classList.remove('nav-hidden');
+            }
+            lastScrollY = currentScrollY;
+          }
+
+          isScrolling = false;
+        }
+
+        // Throttle scroll events for better performance
+        window.addEventListener('scroll', function() {
+          if (!isScrolling) {
+            window.requestAnimationFrame(handleScroll);
+            isScrolling = true;
+          }
+        }, { passive: true });
+
+        // Always show nav when at top of page
+        window.addEventListener('scroll', function() {
+          if (window.scrollY < 50) {
+            mobileNav.classList.remove('nav-hidden');
+          }
+        }, { passive: true });
+      }
     });
   </script>
 
@@ -438,7 +555,331 @@
     .animation-delay-4000 {
       animation-delay: 4s;
     }
+
+    /* Toast Notification Styles */
+    .toast-notification {
+      pointer-events: auto;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-radius: 12px;
+      padding: 16px 20px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.1);
+      border: 1px solid rgba(15, 92, 78, 0.2);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 320px;
+      max-width: 400px;
+      animation: toast-slide-in 0.3s ease-out;
+      transition: all 0.3s ease;
+    }
+
+    .dark .toast-notification {
+      background: rgba(31, 41, 55, 0.95);
+      border-color: rgba(15, 140, 104, 0.3);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4), 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .toast-notification.toast-success {
+      border-left: 4px solid #0f8c68;
+    }
+
+    .toast-notification.toast-error {
+      border-left: 4px solid #ea6c1a;
+    }
+
+    .toast-notification.toast-info {
+      border-left: 4px solid #3b82f6;
+    }
+
+    .toast-notification.toast-warning {
+      border-left: 4px solid #f59e0b;
+    }
+
+    .toast-notification .toast-icon {
+      flex-shrink: 0;
+      width: 24px;
+      height: 24px;
+    }
+
+    .toast-notification .toast-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .toast-notification .toast-message {
+      font-size: 14px;
+      font-weight: 500;
+      color: #1f2937;
+      line-height: 1.4;
+    }
+
+    .dark .toast-notification .toast-message {
+      color: #f3f4f6;
+    }
+
+    .toast-notification .toast-countdown {
+      font-size: 12px;
+      color: #6b7280;
+      font-weight: 500;
+    }
+
+    .dark .toast-notification .toast-countdown {
+      color: #9ca3af;
+    }
+
+    .toast-notification .toast-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .toast-notification .toast-btn {
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      border: none;
+      outline: none;
+    }
+
+    .toast-notification .toast-btn-primary {
+      background: linear-gradient(135deg, #0f5c4e, #0f8c68);
+      color: white;
+      box-shadow: 0 2px 4px rgba(15, 92, 78, 0.2);
+    }
+
+    .toast-notification .toast-btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 8px rgba(15, 92, 78, 0.3);
+    }
+
+    .toast-notification .toast-btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .toast-notification .toast-btn-secondary {
+      background: transparent;
+      color: #6b7280;
+      border: 1px solid #d1d5db;
+    }
+
+    .dark .toast-notification .toast-btn-secondary {
+      color: #9ca3af;
+      border-color: #4b5563;
+    }
+
+    .toast-notification .toast-btn-secondary:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .dark .toast-notification .toast-btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .toast-notification .toast-close {
+      flex-shrink: 0;
+      width: 20px;
+      height: 20px;
+      cursor: pointer;
+      color: #9ca3af;
+      transition: color 0.2s ease;
+    }
+
+    .toast-notification .toast-close:hover {
+      color: #4b5563;
+    }
+
+    .dark .toast-notification .toast-close:hover {
+      color: #d1d5db;
+    }
+
+    @keyframes toast-slide-in {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes toast-slide-out {
+      from {
+        transform: translateX(0);
+        opacity: 1;
+      }
+      to {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+    }
+
+    .toast-notification.toast-hiding {
+      animation: toast-slide-out 0.3s ease-in forwards;
+    }
+
+    /* Adjust FAB position when toasts are present */
+    #toast-container:not(:empty) ~ #fab-upload {
+      bottom: calc(6rem + 80px);
+    }
+
+    /* Mobile Bottom Navigation Styles */
+    #mobile-bottom-nav {
+      /* Safe area insets for devices with notches/home indicators */
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    #mobile-bottom-nav.nav-hidden {
+      transform: translateY(100%);
+    }
+
+    .mobile-nav-item {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    .mobile-nav-item:active {
+      background: rgba(15, 92, 78, 0.1);
+    }
+
+    .dark .mobile-nav-item:active {
+      background: rgba(15, 140, 104, 0.1);
+    }
+
+    /* Add bottom padding to main content on mobile to prevent overlap with bottom nav */
+    @media (max-width: 767px) {
+      main {
+        padding-bottom: calc(80px + env(safe-area-inset-bottom));
+      }
+    }
+
+    /* Adjust toast container position on mobile to avoid bottom nav */
+    @media (max-width: 767px) {
+      #toast-container {
+        bottom: calc(80px + 1.5rem + env(safe-area-inset-bottom));
+        right: 1rem;
+        left: 1rem;
+        max-width: 100%;
+      }
+
+      .toast-notification {
+        min-width: 100%;
+      }
+    }
+
+    /* Mobile Lightbox Enhancements (Requirement 8.10, 8.11) */
+    @media (max-width: 767px) {
+      /* Larger touch targets for mobile */
+      #lightbox-close {
+        width: 48px;
+        height: 48px;
+        padding: 12px;
+        top: 8px;
+        right: 8px;
+      }
+
+      /* Optimize lightbox image container for mobile */
+      #lightbox-image-container {
+        max-height: 70vh !important;
+      }
+
+      #lightbox-image {
+        max-height: 70vh !important;
+      }
+
+      /* Make viewer controls more touch-friendly */
+      #viewer-controls {
+        bottom: 10px !important;
+        padding: 8px !important;
+        gap: 4px !important;
+      }
+
+      #viewer-controls button {
+        min-width: 44px;
+        min-height: 44px;
+        padding: 8px 12px !important;
+        font-size: 20px !important;
+      }
+
+      #zoom-indicator {
+        font-size: 12px !important;
+        padding: 8px 12px !important;
+      }
+
+      /* Info bar adjustments for mobile */
+      #lightbox-modal .mt-4 {
+        margin-top: 8px !important;
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        flex-wrap: wrap;
+      }
+
+      #lightbox-download {
+        padding: 8px 16px !important;
+        min-height: 44px;
+      }
+
+      /* Pan instructions for mobile */
+      #pan-instructions {
+        font-size: 12px !important;
+        padding: 8px 12px !important;
+        top: 8px !important;
+      }
+
+      /* Smooth transitions for control visibility */
+      #lightbox-close,
+      #viewer-controls,
+      #lightbox-modal .mt-4 {
+        transition: opacity 0.3s ease, transform 0.3s ease;
+      }
+
+      .lightbox-controls-hidden {
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+
+      /* Prevent text selection during gestures */
+      #lightbox-modal * {
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+        -webkit-touch-callout: none;
+      }
+
+      /* Optimize touch response */
+      #lightbox-image {
+        touch-action: none;
+      }
+
+      /* Adjust lightbox padding for mobile */
+      #lightbox-modal {
+        padding: 8px !important;
+      }
+    }
+
+    /* Tablet optimizations (768px - 1024px) */
+    @media (min-width: 768px) and (max-width: 1024px) {
+      #viewer-controls button {
+        min-width: 48px;
+        min-height: 48px;
+      }
+
+      #lightbox-close {
+        width: 44px;
+        height: 44px;
+      }
+    }
   </style>
+
+  <!-- Image Viewer Script (Advanced Lightbox) -->
+  <script src="{{ url_for('static', filename='js/image-viewer.js') }}"></script>
 
   {% block scripts %}{% endblock %}
 </body>

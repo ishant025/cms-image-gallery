@@ -1,0 +1,1356 @@
+/**
+ * premium-ux.css — Comprehensive styles for Premium UX Enhancements
+ *
+ * This stylesheet provides styles for:
+ *   - Image Viewer (zoom, pan, rotate controls)
+ *   - Filter Preview (canvas and control UI)
+ *   - Smart Search (advanced search panel)
+ *   - User Preferences (grid size variations)
+ *   - Mobile Gestures (swipe action reveals)
+ *   - Responsive Design (mobile, tablet, desktop breakpoints)
+ *
+ * Requirements: 1.x, 3.x, 5.x, 6.x, 8.x
+ */
+
+/* ======================================================================
+   CSS Variables for Theming
+   ====================================================================== */
+
+:root {
+  /* Brand Colors */
+  --brand-primary: #0f5c4e;
+  --brand-primary-light: #0f8c68;
+  --brand-accent: #ea6c1a;
+  --brand-accent-dark: #c2540e;
+  
+  /* Neutral Colors */
+  --bg-light: #fafaf9;
+  --bg-dark: #0a0a0a;
+  --text-light: #1f2937;
+  --text-dark: #f3f4f6;
+  
+  /* Component Colors */
+  --overlay-bg: rgba(0, 0, 0, 0.5);
+  --card-bg-light: rgba(255, 255, 255, 0.95);
+  --card-bg-dark: rgba(31, 41, 55, 0.95);
+  
+  /* Shadows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.15);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.2);
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 300ms ease;
+  --transition-slow: 500ms ease;
+}
+
+/* ======================================================================
+   Image Viewer Controls (Requirements 1.1-1.7)
+   ====================================================================== */
+
+/* Image viewer control panel */
+.image-viewer-controls {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 12px;
+  padding: 12px 20px;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(12px);
+  border-radius: 16px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  z-index: 60;
+  animation: slideUpFadeIn 0.3s ease-out;
+}
+
+@keyframes slideUpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* Image viewer control buttons */
+.image-viewer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.image-viewer-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.image-viewer-btn:active {
+  transform: translateY(0);
+}
+
+.image-viewer-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.image-viewer-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Zoom level indicator */
+.zoom-level-indicator {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  border-radius: 8px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  z-index: 60;
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
+}
+
+.zoom-level-indicator.visible {
+  opacity: 1;
+}
+
+/* Pan instructions overlay */
+#pan-instructions {
+  transition: opacity var(--transition-normal);
+}
+
+#pan-instructions.visible {
+  opacity: 1 !important;
+}
+
+/* ======================================================================
+   Filter Preview Styles (Requirements 3.1-3.5)
+   ====================================================================== */
+
+/* Filter preview container */
+.filter-preview-container {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--card-bg-light);
+  box-shadow: var(--shadow-md);
+}
+
+.dark .filter-preview-container {
+  background: var(--card-bg-dark);
+}
+
+/* Filter preview canvas */
+.filter-preview-canvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  object-fit: contain;
+  background: #f3f4f6;
+  border-radius: 8px;
+}
+
+.dark .filter-preview-canvas {
+  background: #1f2937;
+}
+
+/* Filter controls panel */
+.filter-controls {
+  padding: 20px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+.dark .filter-controls {
+  background: #1f2937;
+  border-top-color: #374151;
+}
+
+/* Filter control group */
+.filter-control-group {
+  margin-bottom: 16px;
+}
+
+.filter-control-group:last-child {
+  margin-bottom: 0;
+}
+
+/* Filter control label */
+.filter-control-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.dark .filter-control-label {
+  color: #d1d5db;
+}
+
+.filter-control-value {
+  font-weight: 700;
+  color: var(--brand-primary);
+}
+
+.dark .filter-control-value {
+  color: var(--brand-primary-light);
+}
+
+/* Filter slider */
+.filter-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e5e7eb;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.dark .filter-slider {
+  background: #374151;
+}
+
+.filter-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-light));
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all var(--transition-fast);
+}
+
+.filter-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(15, 92, 78, 0.4);
+}
+
+.filter-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-light));
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all var(--transition-fast);
+}
+
+.filter-slider::-moz-range-thumb:hover {
+  transform: scale(1.2);
+  box-shadow: 0 4px 12px rgba(15, 92, 78, 0.4);
+}
+
+/* Filter preset buttons */
+.filter-presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.filter-preset-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 2px solid #e5e7eb;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.dark .filter-preset-btn {
+  border-color: #374151;
+  background: #1f2937;
+  color: #9ca3af;
+}
+
+.filter-preset-btn:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-preset-btn.active {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: white;
+}
+
+.dark .filter-preset-btn.active {
+  border-color: var(--brand-primary-light);
+  background: var(--brand-primary-light);
+}
+
+/* Filter reset button */
+.filter-reset-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 2px solid #e5e7eb;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.dark .filter-reset-btn {
+  border-color: #374151;
+  background: #1f2937;
+  color: #9ca3af;
+}
+
+.filter-reset-btn:hover {
+  border-color: var(--brand-accent);
+  color: var(--brand-accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-sm);
+}
+
+.filter-reset-btn:active {
+  transform: translateY(0);
+}
+
+/* Filter loading overlay */
+.filter-loading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(4px);
+  z-index: 10;
+}
+
+.dark .filter-loading {
+  background: rgba(31, 41, 55, 0.9);
+}
+
+/* ======================================================================
+   Smart Search Panel (Requirements 5.1-5.7)
+   ====================================================================== */
+
+/* Smart search container */
+.smart-search-panel {
+  background: white;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: var(--shadow-md);
+  margin-bottom: 24px;
+  border: 1px solid #e5e7eb;
+}
+
+.dark .smart-search-panel {
+  background: #1f2937;
+  border-color: #374151;
+}
+
+/* Search section */
+.search-section {
+  margin-bottom: 20px;
+}
+
+.search-section:last-child {
+  margin-bottom: 0;
+}
+
+.search-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #374151;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.dark .search-section-title {
+  color: #d1d5db;
+}
+
+/* Tag input container */
+.tag-input-container {
+  position: relative;
+}
+
+.tag-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid #e5e7eb;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #1f2937;
+  background: white;
+  transition: all var(--transition-fast);
+}
+
+.dark .tag-input {
+  border-color: #374151;
+  background: #111827;
+  color: #f3f4f6;
+}
+
+.tag-input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(15, 92, 78, 0.1);
+}
+
+.dark .tag-input:focus {
+  border-color: var(--brand-primary-light);
+  box-shadow: 0 0 0 3px rgba(15, 140, 104, 0.2);
+}
+
+/* Active filters display */
+.active-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  min-height: 32px;
+}
+
+.filter-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-light));
+  color: white;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  animation: filterTagFadeIn 0.2s ease-out;
+}
+
+@keyframes filterTagFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.filter-tag-remove {
+  display: flex;
+  align-items: center;
+  justify-center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.filter-tag-remove:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scale(1.1);
+}
+
+.filter-tag-remove svg {
+  width: 12px;
+  height: 12px;
+}
+
+/* Date range inputs */
+.date-range-inputs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.date-input {
+  padding: 10px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1f2937;
+  background: white;
+  transition: all var(--transition-fast);
+}
+
+.dark .date-input {
+  border-color: #374151;
+  background: #111827;
+  color: #f3f4f6;
+}
+
+.date-input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(15, 92, 78, 0.1);
+}
+
+/* Uploader dropdown */
+.uploader-select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 2px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #1f2937;
+  background: white;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.dark .uploader-select {
+  border-color: #374151;
+  background: #111827;
+  color: #f3f4f6;
+}
+
+.uploader-select:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 3px rgba(15, 92, 78, 0.1);
+}
+
+/* Likes slider */
+.likes-slider-container {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.likes-slider {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: #e5e7eb;
+  outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  cursor: pointer;
+}
+
+.dark .likes-slider {
+  background: #374151;
+}
+
+.likes-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-light));
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  transition: all var(--transition-fast);
+}
+
+.likes-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.likes-slider::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-light));
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.likes-value {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--brand-primary);
+  text-align: center;
+}
+
+.dark .likes-value {
+  color: var(--brand-primary-light);
+}
+
+/* Search action buttons */
+.search-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.search-btn {
+  flex: 1;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.search-btn-primary {
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-light));
+  color: white;
+  box-shadow: var(--shadow-sm);
+}
+
+.search-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.search-btn-primary:active {
+  transform: translateY(0);
+}
+
+.search-btn-secondary {
+  background: white;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+}
+
+.dark .search-btn-secondary {
+  background: #1f2937;
+  color: #9ca3af;
+  border-color: #374151;
+}
+
+.search-btn-secondary:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  transform: translateY(-2px);
+}
+
+/* ======================================================================
+   Grid Size Variations (Requirements 6.1-6.2)
+   ====================================================================== */
+
+/* Grid size selector */
+.grid-size-selector {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.grid-size-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 2px solid #e5e7eb;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.dark .grid-size-btn {
+  border-color: #374151;
+  background: #1f2937;
+  color: #9ca3af;
+}
+
+.grid-size-btn:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  transform: translateY(-2px);
+}
+
+.grid-size-btn.active {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: white;
+}
+
+.dark .grid-size-btn.active {
+  border-color: var(--brand-primary-light);
+  background: var(--brand-primary-light);
+}
+
+/* Grid layout variations */
+.gallery-grid.grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+.gallery-grid.grid-3 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.gallery-grid.grid-4 {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.gallery-grid.grid-5 {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+/* Sort order selector */
+.sort-order-selector {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sort-order-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 2px solid #e5e7eb;
+  background: white;
+  color: #6b7280;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.dark .sort-order-btn {
+  border-color: #374151;
+  background: #1f2937;
+  color: #9ca3af;
+}
+
+.sort-order-btn:hover {
+  border-color: var(--brand-primary);
+  color: var(--brand-primary);
+  transform: translateY(-2px);
+}
+
+.sort-order-btn.active {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary);
+  color: white;
+}
+
+.dark .sort-order-btn.active {
+  border-color: var(--brand-primary-light);
+  background: var(--brand-primary-light);
+}
+
+/* ======================================================================
+   Mobile Swipe Actions (Requirements 8.4-8.5)
+   ====================================================================== */
+
+/* Swipe action container */
+.swipe-action-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Swipe action buttons (hidden by default) */
+.swipe-actions {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  gap: 4px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.8);
+  transform: translateX(100%);
+  transition: transform var(--transition-normal);
+  z-index: 10;
+}
+
+.swipe-actions.revealed {
+  transform: translateX(0);
+}
+
+.swipe-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 100%;
+  border-radius: 8px;
+  color: white;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.swipe-action-btn.delete {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.swipe-action-btn.download {
+  background: linear-gradient(135deg, var(--brand-primary), var(--brand-primary-light));
+}
+
+.swipe-action-btn:active {
+  transform: scale(0.95);
+}
+
+/* Pull to refresh indicator */
+.pull-to-refresh {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%) translateY(-100%);
+  padding: 12px 24px;
+  background: rgba(15, 92, 78, 0.95);
+  backdrop-filter: blur(8px);
+  border-radius: 0 0 12px 12px;
+  color: white;
+  font-size: 14px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  z-index: 100;
+  transition: transform var(--transition-normal);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.pull-to-refresh.active {
+  transform: translateX(-50%) translateY(0);
+}
+
+.pull-to-refresh-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top-color: white;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ======================================================================
+   Mobile Bottom Navigation (Requirements 8.1-8.3, 8.12)
+   ====================================================================== */
+
+/* Mobile navigation auto-hide */
+#mobile-bottom-nav.nav-hidden {
+  transform: translateY(100%);
+}
+
+/* Mobile navigation item active state */
+.mobile-nav-item.active {
+  color: var(--brand-primary);
+}
+
+.dark .mobile-nav-item.active {
+  color: var(--brand-primary-light);
+}
+
+/* ======================================================================
+   Responsive Design (Requirements 8.9)
+   ====================================================================== */
+
+/* Tablet breakpoint (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .gallery-grid.grid-5 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  
+  .gallery-grid.grid-4 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Mobile breakpoint (< 768px) */
+@media (max-width: 768px) {
+  /* Force smaller grid on mobile */
+  .gallery-grid.grid-5,
+  .gallery-grid.grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  .gallery-grid.grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  
+  /* Smart search panel adjustments */
+  .smart-search-panel {
+    padding: 16px;
+  }
+  
+  .date-range-inputs {
+    grid-template-columns: 1fr;
+  }
+  
+  .search-actions {
+    flex-direction: column;
+  }
+  
+  /* Filter controls adjustments */
+  .filter-controls {
+    padding: 16px;
+  }
+  
+  .filter-presets {
+    justify-content: center;
+  }
+  
+  /* Image viewer controls adjustments */
+  .image-viewer-controls {
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    gap: 8px;
+  }
+  
+  .image-viewer-btn {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .image-viewer-btn span {
+    display: none;
+  }
+}
+
+/* Small mobile breakpoint (< 480px) */
+@media (max-width: 480px) {
+  /* Single column grid on very small screens */
+  .gallery-grid.grid-2 {
+    grid-template-columns: 1fr;
+  }
+  
+  /* Compact filter controls */
+  .filter-preset-btn {
+    flex: 1 1 calc(50% - 4px);
+    min-width: 0;
+  }
+  
+  /* Stack grid size buttons */
+  .grid-size-selector,
+  .sort-order-selector {
+    flex-wrap: wrap;
+  }
+  
+  .grid-size-btn,
+  .sort-order-btn {
+    flex: 1 1 calc(50% - 4px);
+  }
+}
+
+/* ======================================================================
+   Touch Target Optimization (Requirement 8.9)
+   ====================================================================== */
+
+/* Ensure all interactive elements meet 44x44px minimum */
+@media (max-width: 768px) {
+  button,
+  a.button,
+  input[type="button"],
+  input[type="submit"],
+  .clickable {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  
+  /* Larger tap targets for checkboxes */
+  input[type="checkbox"],
+  input[type="radio"] {
+    min-width: 24px;
+    min-height: 24px;
+  }
+}
+
+/* ======================================================================
+   Accessibility Enhancements
+   ====================================================================== */
+
+/* Focus visible styles for keyboard navigation */
+*:focus-visible {
+  outline: 2px solid var(--brand-primary);
+  outline-offset: 2px;
+}
+
+.dark *:focus-visible {
+  outline-color: var(--brand-primary-light);
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .image-viewer-btn,
+  .filter-preset-btn,
+  .search-btn,
+  .grid-size-btn,
+  .sort-order-btn {
+    border-width: 3px;
+  }
+  
+  .filter-tag {
+    border: 2px solid white;
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .image-viewer-controls,
+  .filter-tag,
+  .swipe-actions,
+  .pull-to-refresh {
+    animation: none;
+    transition: none;
+  }
+}
+
+/* ======================================================================
+   Loading States
+   ====================================================================== */
+
+/* Skeleton loader for images */
+.skeleton-loader {
+  background: linear-gradient(
+    90deg,
+    #f0f0f0 0%,
+    #e0e0e0 50%,
+    #f0f0f0 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+.dark .skeleton-loader {
+  background: linear-gradient(
+    90deg,
+    #2a2a2a 0%,
+    #3a3a3a 50%,
+    #2a2a2a 100%
+  );
+  background-size: 200% 100%;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* Loading spinner */
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(15, 92, 78, 0.2);
+  border-top-color: var(--brand-primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.dark .loading-spinner {
+  border-color: rgba(15, 140, 104, 0.2);
+  border-top-color: var(--brand-primary-light);
+}
+
+/* ======================================================================
+   Utility Classes
+   ====================================================================== */
+
+/* Visibility utilities */
+.hidden {
+  display: none !important;
+}
+
+.visible {
+  display: block !important;
+}
+
+.invisible {
+  visibility: hidden !important;
+}
+
+/* Pointer events */
+.pointer-events-none {
+  pointer-events: none !important;
+}
+
+.pointer-events-auto {
+  pointer-events: auto !important;
+}
+
+/* Cursor utilities */
+.cursor-pointer {
+  cursor: pointer !important;
+}
+
+.cursor-not-allowed {
+  cursor: not-allowed !important;
+}
+
+.cursor-grab {
+  cursor: grab !important;
+}
+
+.cursor-grabbing {
+  cursor: grabbing !important;
+}
+
+/* Transform utilities */
+.transform-gpu {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Backdrop blur utilities */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.backdrop-blur-md {
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.backdrop-blur-lg {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ======================================================================
+   Print Styles
+   ====================================================================== */
+
+@media print {
+  /* Hide interactive elements when printing */
+  .image-viewer-controls,
+  .filter-controls,
+  .smart-search-panel,
+  .swipe-actions,
+  #mobile-bottom-nav,
+  .toast-notification {
+    display: none !important;
+  }
+  
+  /* Optimize images for print */
+  img {
+    max-width: 100%;
+    page-break-inside: avoid;
+  }
+  
+  /* Remove shadows and effects */
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+}
+
+/* ======================================================================
+   Browser-Specific Fixes
+   ====================================================================== */
+
+/* Safari-specific fixes */
+@supports (-webkit-touch-callout: none) {
+  /* Fix for Safari's handling of backdrop-filter */
+  .image-viewer-controls,
+  .pull-to-refresh {
+    -webkit-backdrop-filter: blur(12px);
+  }
+  
+  /* Fix for Safari's transform rendering */
+  .transform-gpu {
+    -webkit-transform: translateZ(0);
+  }
+}
+
+/* Firefox-specific fixes */
+@-moz-document url-prefix() {
+  /* Fix for Firefox's slider styling */
+  .filter-slider,
+  .likes-slider {
+    background: #e5e7eb;
+  }
+}
+
+/* ======================================================================
+   Dark Mode Specific Adjustments
+   ====================================================================== */
+
+.dark {
+  /* Enhanced contrast for dark mode */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
+}
+
+/* Dark mode image adjustments */
+.dark img {
+  opacity: 0.95;
+}
+
+.dark img:hover {
+  opacity: 1;
+}
+
+/* Dark mode scrollbar styling */
+.dark ::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+
+.dark ::-webkit-scrollbar-track {
+  background: #1f2937;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #374151;
+  border-radius: 6px;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #4b5563;
+}
+
+/* ======================================================================
+   Animation Keyframes
+   ====================================================================== */
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* ======================================================================
+   End of premium-ux.css
+   ====================================================================== */

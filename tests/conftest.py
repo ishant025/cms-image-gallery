@@ -114,6 +114,23 @@ class FakeS3Client:
         # Record the call for later assertion
         self.uploaded.append({"Bucket": Bucket, "Key": Key, "ContentType": ContentType})
 
+    def upload_fileobj(self, Fileobj, Bucket: str, Key: str, ExtraArgs=None, **kwargs):
+        """Simulate a successful S3 upload_fileobj call and record the invocation."""
+        if self.fail_upload:
+            # Simulate a Boto3 ClientError for upload failure tests
+            from botocore.exceptions import ClientError
+
+            raise ClientError(
+                {"Error": {"Code": "InternalError", "Message": "Simulated S3 upload failure"}},
+                "UploadFileobj",
+            )
+        # Extract ContentType from ExtraArgs if provided
+        content_type = ""
+        if ExtraArgs and "ContentType" in ExtraArgs:
+            content_type = ExtraArgs["ContentType"]
+        # Record the call for later assertion
+        self.uploaded.append({"Bucket": Bucket, "Key": Key, "ContentType": content_type})
+
     def delete_object(self, Bucket: str, Key: str, **kwargs):
         """Simulate a successful S3 delete_object call and record the invocation."""
         if self.fail_delete:

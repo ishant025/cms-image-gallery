@@ -749,6 +749,12 @@ document.addEventListener('DOMContentLoaded', function () {
               card.style.transform = 'scale(0.95)';
               setTimeout(function () { card.remove(); }, 300);
             }
+            
+            /* Show undo toast notification (Requirement 7.1, 7.2, 7.5) */
+            if (typeof window.showUndoToast === 'function') {
+              // Use 30-second countdown for undo (Requirement 7.2)
+              window.showUndoToast(imageId, 30, 'Image');
+            }
           } else {
             showToast('Delete failed: ' + (data && data.error ? data.error : 'Unknown error'), 'error');
           }
