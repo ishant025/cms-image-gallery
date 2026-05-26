@@ -40,9 +40,7 @@ A modern, cloud-powered Image & GIF Gallery — built with Flask, AWS S3, Neon P
 
 ### Premium UX Enhancements
 - 🖼️ **Advanced Image Viewer** — Full-screen lightbox with zoom, pan, keyboard navigation, and image metadata
-- 🎨 **Live Image Filters** — Real-time preview of grayscale, sepia, brightness, contrast, and saturation adjustments
 - ⚡ **Progressive Loading** — Blur-up effect with thumbnail-to-full-image transitions for faster perceived load times
-- 📱 **Mobile Experience** — Touch gestures (swipe, pinch-to-zoom), bottom navigation, and optimized mobile UI
 
 ---
 
@@ -279,13 +277,10 @@ cms-image-gallery/
 ├── static/                     # Static assets
 │   ├── js/
 │   │   ├── gallery.js          # Core gallery functionality
-│   │   ├── filter-preview.js   # Live image filter preview
 │   │   ├── image-viewer.js     # Lightbox image viewer
-│   │   ├── progressive-loading.js  # Blur-up image loading
-│   │   └── mobile-gestures.js  # Touch gesture handling
+│   │   └── progressive-loading.js  # Blur-up image loading
 │   ├── css/
-│   │   ├── premium-ux.css      # Premium feature styles
-│   │   └── mobile-responsive.css  # Mobile-optimized styles
+│   │   └── (Tailwind CSS via CDN)
 │   └── logo.png
 ├── tests/                      # pytest test suite (174 tests)
 │   ├── test_like.py            # Like/dislike tests
