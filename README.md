@@ -17,7 +17,6 @@ A modern, cloud-powered Image & GIF Gallery — built with Flask, AWS S3, Neon P
 [![Neon](https://img.shields.io/badge/Neon-PostgreSQL-00E599?style=flat&logo=postgresql&logoColor=white)](https://neon.tech/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind-3-06B6D4?style=flat&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
 [![Render](https://img.shields.io/badge/Deployed_on-Render-46E3B7?style=flat&logo=render&logoColor=white)](https://content-manch.onrender.com)
-[![License](https://img.shields.io/badge/License-MIT-green?style=flat)](#license)
 [![Tests](https://img.shields.io/badge/Tests-174%20passed-success?style=flat)](#testing)
 
 </div>
