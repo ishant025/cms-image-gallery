@@ -38,9 +38,6 @@ A modern, cloud-powered Image & GIF Gallery — built with Flask, AWS S3, Neon P
 - 📱 **Fully Responsive** — Pinterest-style masonry grid that adapts from mobile to desktop
 - ⚡ **Fast** — Search returns results in under 2 seconds for up to 10,000 records
 
-### Premium UX Enhancements
-- 🖼️ **Advanced Image Viewer** — Full-screen lightbox with zoom, pan, keyboard navigation, and image metadata
-- ⚡ **Progressive Loading** — Blur-up effect with thumbnail-to-full-image transitions for faster perceived load times
 
 ---
 
